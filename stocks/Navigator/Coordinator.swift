@@ -1,52 +1,25 @@
-
-import Foundation
 import UIKit
 
-enum Event {
-    case popToRoot
-    case pop(animated: Bool)
-    case dismiss
-    case present(viewController: UIViewController & Routing)
-    //case bottomSheet(city: String)
-    //case qaz
-   
-}
-
-protocol Coordinator {
-    func eventOccurred(with type: Event)
+protocol Coordinator: AnyObject {
     func start()
-    
 }
 
-protocol Routing: AnyObject {
-    var coordinator: Coordinator { get }
-}
+final class MainCoordinator: Coordinator {
 
-class MainCoordinator: Coordinator {
+    let navigationController: UINavigationController = {
+        let nav = UINavigationController()
+        nav.setNavigationBarHidden(true, animated: false)
+        return nav
+    }()
 
-    
-    let navigationController = UINavigationController()
-    
     func start() {
+        let vc = OnboardingViewController()
+        vc.onFinish = { [weak self] in self?.showMainApp() }
+        navigationController.setViewControllers([vc], animated: false)
+    }
+
+    private func showMainApp() {
         let tabBar = TabBarController(coordinator: self)
         navigationController.setViewControllers([tabBar], animated: true)
     }
-    
-  
-    @MainActor func eventOccurred(with type: Event) {
-        switch type {
-        case .popToRoot:
-            navigationController.popToRootViewController(animated: true)
-        case .pop(let animated):
-            navigationController.popViewController(animated: animated)
-        case .dismiss:
-            navigationController.dismiss(animated: true, completion: nil)
-        case .present(let viewController):
-            navigationController.pushViewController(viewController, animated: true)
-        
-        }
-       
-    }
 }
-
-
