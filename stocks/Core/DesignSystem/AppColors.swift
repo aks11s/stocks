@@ -9,6 +9,7 @@ extension UIColor {
     static let appTextPrimary   = UIColor.white
     static let appTextSecondary = UIColor(hex: "#777777")
     static let appButtonLabel   = UIColor(hex: "#171D22")
+    static let appTextMuted     = UIColor(hex: "#A7AFB7")
 
     convenience init(hex: String) {
         var hex = hex.trimmingCharacters(in: .whitespacesAndNewlines)
