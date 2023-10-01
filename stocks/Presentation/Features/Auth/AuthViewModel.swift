@@ -43,9 +43,11 @@ final class AuthViewModel {
     private func validate(input: String, password: String) -> Bool {
         switch inputMode {
         case .phone:
-            let digits = input.filter { $0.isNumber }
+            // input is masked (+7 (XXX) XXX-XX-XX), so count only digits after the country code
+            var digits = input.filter { $0.isNumber }
+            if digits.hasPrefix("7") { digits = String(digits.dropFirst()) }
             if digits.count < 10 {
-                onValidationError?("Enter a valid phone number (at least 10 digits)")
+                onValidationError?("Enter a valid phone number (10 digits required)")
                 return false
             }
         case .email:

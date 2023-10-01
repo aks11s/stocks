@@ -158,9 +158,13 @@ final class AuthViewController: UIViewController {
             guard let self else { return }
             self.fieldLabel.text = self.viewModel.fieldLabel
             self.toggleButton.setTitle(self.viewModel.toggleTitle, for: .normal)
+            self.inputField.setPhoneMode(mode == .phone)
             self.inputField.updatePlaceholder(self.viewModel.fieldPlaceholder)
             self.inputField.textField.keyboardType = mode == .phone ? .phonePad : .emailAddress
         }
+
+        // apply initial mode (starts as .phone)
+        inputField.setPhoneMode(viewModel.inputMode == .phone)
 
         viewModel.onSuccess = { [weak self] in
             self?.onFinish?()
