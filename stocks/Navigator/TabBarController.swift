@@ -2,8 +2,9 @@ import Foundation
 import UIKit
 
 
-class TabBarController: UITabBarController{
-    private (set) var coordinator: Coordinator
+class TabBarController: UITabBarController {
+    private(set) var coordinator: Coordinator
+    var onLogout: (() -> Void)?
 
     //MARK: - Init
 
