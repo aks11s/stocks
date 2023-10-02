@@ -12,19 +12,38 @@ final class MainCoordinator: Coordinator {
         return nav
     }()
 
+    // MARK: - Entry point
+
     func start() {
-        let vc = OnboardingViewController()
-        vc.onFinish = { [weak self] in self?.showAuth() }
-        navigationController.setViewControllers([vc], animated: false)
+        let defaults = UserDefaults.standard
+        let hasSeenOnboarding = defaults.bool(forKey: "hasSeenOnboarding")
+        let isAuthenticated   = defaults.bool(forKey: "isAuthenticated")
+
+        if !hasSeenOnboarding {
+            showOnboarding()
+        } else if !isAuthenticated {
+            showAuth(animated: false)
+        } else {
+            showMainApp()
+        }
     }
 
     // MARK: - Navigation
 
-    private func showAuth() {
+    private func showOnboarding() {
+        let vc = OnboardingViewController()
+        vc.onFinish = { [weak self] in
+            UserDefaults.standard.set(true, forKey: "hasSeenOnboarding")
+            self?.showAuth(animated: true)
+        }
+        navigationController.setViewControllers([vc], animated: false)
+    }
+
+    private func showAuth(animated: Bool) {
         let vm = AuthViewModel()
         let vc = AuthViewController(viewModel: vm)
         vc.onFinish = { [weak self] in self?.showMainApp() }
-        navigationController.setViewControllers([vc], animated: true)
+        navigationController.setViewControllers([vc], animated: animated)
     }
 
     private func showMainApp() {
@@ -35,6 +54,6 @@ final class MainCoordinator: Coordinator {
 
     private func logout() {
         UserDefaults.standard.set(false, forKey: "isAuthenticated")
-        showAuth()
+        showAuth(animated: true)
     }
 }
