@@ -6,6 +6,9 @@ protocol BinanceWebSocketServiceProtocol {
     func miniTickerStream() -> AsyncStream<[MiniTickerDTO]>
     func tickerStream(symbol: String) -> AsyncStream<TickerDTO>
     func klineStream(symbol: String, interval: KlineInterval) -> AsyncStream<KlineDTO>
+    func depthStream(symbol: String) -> AsyncStream<DepthDTO>
+    func aggTradeStream(symbol: String) -> AsyncStream<AggTradeDTO>
+    func bookTickerStream(symbol: String) -> AsyncStream<BookTickerDTO>
 }
 
 final class BinanceWebSocketService: BinanceWebSocketServiceProtocol {
@@ -14,8 +17,11 @@ final class BinanceWebSocketService: BinanceWebSocketServiceProtocol {
 
     // Keyed by stream name so the Detail screen can open kline and ticker for different symbols simultaneously
     private var miniTickerContinuation: AsyncStream<[MiniTickerDTO]>.Continuation?
-    private var tickerContinuations: [String: AsyncStream<TickerDTO>.Continuation] = [:]
-    private var klineContinuations:  [String: AsyncStream<KlineDTO>.Continuation]  = [:]
+    private var tickerContinuations:     [String: AsyncStream<TickerDTO>.Continuation]     = [:]
+    private var klineContinuations:      [String: AsyncStream<KlineDTO>.Continuation]      = [:]
+    private var depthContinuations:      [String: AsyncStream<DepthDTO>.Continuation]      = [:]
+    private var aggTradeContinuations:   [String: AsyncStream<AggTradeDTO>.Continuation]   = [:]
+    private var bookTickerContinuations: [String: AsyncStream<BookTickerDTO>.Continuation] = [:]
 
     init(socket: WebSocketServiceProtocol = WebSocketService()) {
         self.socket = socket
@@ -29,8 +35,11 @@ final class BinanceWebSocketService: BinanceWebSocketServiceProtocol {
     func disconnect() {
         socket.disconnect()
         miniTickerContinuation?.finish()
-        tickerContinuations.values.forEach { $0.finish() }
-        klineContinuations.values.forEach  { $0.finish() }
+        tickerContinuations.values.forEach     { $0.finish() }
+        klineContinuations.values.forEach      { $0.finish() }
+        depthContinuations.values.forEach      { $0.finish() }
+        aggTradeContinuations.values.forEach   { $0.finish() }
+        bookTickerContinuations.values.forEach { $0.finish() }
     }
 
     // MARK: - Stream factories
@@ -46,6 +55,18 @@ final class BinanceWebSocketService: BinanceWebSocketServiceProtocol {
     func klineStream(symbol: String, interval: KlineInterval) -> AsyncStream<KlineDTO> {
         let key = BinanceStream.kline(symbol: symbol, interval: interval).name
         return AsyncStream { [weak self] in self?.klineContinuations[key] = $0 }
+    }
+
+    func depthStream(symbol: String) -> AsyncStream<DepthDTO> {
+        AsyncStream { [weak self] in self?.depthContinuations[symbol.lowercased()] = $0 }
+    }
+
+    func aggTradeStream(symbol: String) -> AsyncStream<AggTradeDTO> {
+        AsyncStream { [weak self] in self?.aggTradeContinuations[symbol.lowercased()] = $0 }
+    }
+
+    func bookTickerStream(symbol: String) -> AsyncStream<BookTickerDTO> {
+        AsyncStream { [weak self] in self?.bookTickerContinuations[symbol.lowercased()] = $0 }
     }
 
     // MARK: - Message routing
@@ -72,6 +93,18 @@ final class BinanceWebSocketService: BinanceWebSocketServiceProtocol {
         } else if streamName.contains("@kline_") {
             if let v = try? decoder.decode(KlineDTO.self, from: payload) {
                 klineContinuations[streamName]?.yield(v)
+            }
+        } else if streamName.contains("@depth") {
+            if let v = try? decoder.decode(DepthDTO.self, from: payload) {
+                depthContinuations[sym]?.yield(v)
+            }
+        } else if streamName.hasSuffix("@aggTrade") {
+            if let v = try? decoder.decode(AggTradeDTO.self, from: payload) {
+                aggTradeContinuations[sym]?.yield(v)
+            }
+        } else if streamName.hasSuffix("@bookTicker") {
+            if let v = try? decoder.decode(BookTickerDTO.self, from: payload) {
+                bookTickerContinuations[sym]?.yield(v)
             }
         }
     }
