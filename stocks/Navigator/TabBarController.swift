@@ -1,12 +1,11 @@
-import Foundation
 import UIKit
 
+final class TabBarController: UITabBarController {
 
-class TabBarController: UITabBarController {
     private(set) var coordinator: Coordinator
     var onLogout: (() -> Void)?
 
-    //MARK: - Init
+    // MARK: - Init
 
     required init(coordinator: Coordinator) {
         self.coordinator = coordinator
@@ -17,43 +16,71 @@ class TabBarController: UITabBarController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    // MARK: - Controllers
+    // MARK: - Tab view controllers
 
     private lazy var homeVC: UIViewController = {
-        let viewController = ViewController()
-        viewController.tabBarItem.title = "Главная"
-        viewController.tabBarItem.image = UIImage(systemName: "house")
-        return viewController
+        let vc = HomeViewController()
+        vc.tabBarItem = UITabBarItem(
+            title: "Home",
+            image: UIImage(named: "tab_home"),
+            tag: 0
+        )
+        return vc
     }()
- 
-    
+
+    private lazy var marketsVC: UIViewController = {
+        let vc = MarketsViewController()
+        vc.tabBarItem = UITabBarItem(
+            title: "Markets",
+            image: UIImage(named: "tab_markets"),
+            tag: 1
+        )
+        return vc
+    }()
+
+    private lazy var walletVC: UIViewController = {
+        let vc = WalletViewController()
+        vc.tabBarItem = UITabBarItem(
+            title: "Wallet",
+            image: UIImage(named: "tab_wallet"),
+            tag: 2
+        )
+        return vc
+    }()
 
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupInterface()
-        setupControllers()
+        setupAppearance()
+        viewControllers = [homeVC, marketsVC, walletVC]
     }
 
-    // MARK: - Setups
+    // MARK: - Appearance
 
-    private func setupInterface() {
-        tabBar.tintColor = .black
-        tabBar.unselectedItemTintColor = .black
-        tabBar.backgroundColor = .white
-        tabBar.layer.shadowColor = UIColor.black.cgColor
-        tabBar.layer.shadowOpacity = 0.1
-        tabBar.layer.shadowRadius = 2
-        tabBar.layer.shadowOffset = CGSize(width: 0, height: 1)
-    }
+    private func setupAppearance() {
+        // Colors
+        tabBar.tintColor = .appAccent
+        tabBar.unselectedItemTintColor = .appTextSecondary
+        tabBar.barTintColor = .appBackground
+        tabBar.isTranslucent = false
 
-    private func setupControllers() {
-        
+        // Remove the default hairline separator
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .appBackground
+        appearance.shadowColor = .clear
 
-        viewControllers = [homeVC ]
-        
+        // Label font — Neue Montreal 12pt
+        let labelAttrs: [NSAttributedString.Key: Any] = [
+            .font: AppFonts.regular(12)
+        ]
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = labelAttrs
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = labelAttrs
+
+        tabBar.standardAppearance = appearance
+        if #available(iOS 15.0, *) {
+            tabBar.scrollEdgeAppearance = appearance
+        }
     }
 }
-
-
