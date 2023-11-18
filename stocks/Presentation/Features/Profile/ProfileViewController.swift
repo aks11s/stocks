@@ -64,6 +64,11 @@ final class ProfileViewController: UIViewController {
         return l
     }()
 
+    private lazy var usernameRow   = makeRow(label: "Username",      value: "Username1234")
+    private lazy var emailRow      = makeRow(label: "Email",         value: "example@mail.com")
+    private lazy var phoneRow      = makeRow(label: "Mobile Number", value: "+1 234 567 8900")
+    private lazy var passwordRow   = makeRow(label: "Password",      value: "*********")
+
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
@@ -82,7 +87,9 @@ final class ProfileViewController: UIViewController {
 
     private func setupViews() {
         view.layer.insertSublayer(gradientLayer, at: 0)
-        [backButton, titleLabel, avatarView, usernameLabel].forEach { view.addSubview($0) }
+        [backButton, titleLabel,
+         avatarView, usernameLabel,
+         usernameRow, emailRow, phoneRow, passwordRow].forEach { view.addSubview($0) }
         avatarView.addSubview(avatarLabel)
     }
 
@@ -112,6 +119,39 @@ final class ProfileViewController: UIViewController {
             make.centerX.equalToSuperview()
             make.top.equalTo(avatarView.snp.bottom).offset(14)
         }
+
+        // Rows start 62pt below username (mirrors Figma content y=201 after avatar+name block)
+        usernameRow.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview().inset(24)
+            make.top.equalTo(usernameLabel.snp.bottom).offset(62)
+            make.height.equalTo(62)
+        }
+
+        emailRow.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview().inset(24)
+            make.top.equalTo(usernameRow.snp.bottom)
+            make.height.equalTo(62)
+        }
+
+        phoneRow.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview().inset(24)
+            make.top.equalTo(emailRow.snp.bottom)
+            make.height.equalTo(62)
+        }
+
+        passwordRow.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview().inset(24)
+            make.top.equalTo(phoneRow.snp.bottom)
+            make.height.equalTo(62)
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func makeRow(label: String, value: String) -> ProfileInfoRowView {
+        let row = ProfileInfoRowView()
+        row.configure(label: label, value: value)
+        return row
     }
 
     // MARK: - Actions

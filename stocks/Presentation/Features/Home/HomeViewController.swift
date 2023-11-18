@@ -75,6 +75,12 @@ final class HomeViewController: UIViewController {
     // MARK: - Setup
 
     private func setupViews() {
+        headerView.onAvatarTap = { [weak self] in
+            let profile = ProfileViewController()
+            profile.modalPresentationStyle = .fullScreen
+            self?.present(profile, animated: true)
+        }
+
         [headerView, quickActionsView].forEach { view.addSubview($0) }
 
         view.addSubview(scrollView)
