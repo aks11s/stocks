@@ -22,6 +22,9 @@ final class HomeHeaderView: UIView {
         return l
     }()
 
+    // Called when the user taps the avatar — owner handles navigation
+    var onAvatarTap: (() -> Void)?
+
     // Icons from Figma: search(x=252), scan(x=304), notif(x=356)
     private lazy var searchButton = makeIconButton(named: "icon_search")
     private lazy var scanButton   = makeIconButton(named: "icon_scan")
@@ -43,6 +46,10 @@ final class HomeHeaderView: UIView {
         backgroundColor = .appBackground
         avatarView.addSubview(avatarLabel)
         [avatarView, searchButton, scanButton, notifButton].forEach { addSubview($0) }
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
+        avatarView.addGestureRecognizer(tap)
+        avatarView.isUserInteractionEnabled = true
     }
 
     private func setupLayout() {
@@ -75,6 +82,12 @@ final class HomeHeaderView: UIView {
             make.leading.equalToSuperview().offset(356)
             make.top.equalTo(safeAreaLayoutGuide)
         }
+    }
+
+    // MARK: - Actions
+
+    @objc private func avatarTapped() {
+        onAvatarTap?()
     }
 
     private func makeIconButton(named name: String) -> UIView {
