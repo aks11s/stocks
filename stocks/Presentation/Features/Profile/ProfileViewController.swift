@@ -165,6 +165,12 @@ final class ProfileViewController: UIViewController {
 
     // MARK: - Data
 
+    private func openEdit() {
+        let vc = EditProfileViewController()
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
+    }
+
     private func loadProfile() {
         let storage = ProfileStorage.shared
 
@@ -180,6 +186,12 @@ final class ProfileViewController: UIViewController {
         // Show masked dots if password is saved, nil otherwise
         let maskedPassword = storage.passwordHash != nil ? "••••••••" : nil
         passwordRow.configure(label: "Password", value: maskedPassword)
+
+        // Any row tap or "Add" button opens the edit screen
+        [usernameRow, emailRow, phoneRow, passwordRow].forEach { row in
+            row.onAddTap = { [weak self] in self?.openEdit() }
+            row.onRowTap = { [weak self] in self?.openEdit() }
+        }
     }
 
     // MARK: - Actions
