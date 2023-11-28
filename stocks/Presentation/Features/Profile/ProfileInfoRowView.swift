@@ -3,6 +3,9 @@ import SnapKit
 
 final class ProfileInfoRowView: UIView {
 
+    // Fired when the user taps "Add" on an empty field
+    var onAddTap: (() -> Void)?
+
     // MARK: - Subviews
 
     private lazy var labelText: UILabel = {
@@ -19,6 +22,17 @@ final class ProfileInfoRowView: UIView {
         return l
     }()
 
+    // Shown instead of valueText when the field has no data yet
+    private lazy var addButton: UIButton = {
+        let b = UIButton(type: .system)
+        b.setTitle("Add", for: .normal)
+        b.setTitleColor(.appAccent, for: .normal)
+        b.titleLabel?.font = AppFonts.regular(14)
+        b.addTarget(self, action: #selector(addTapped), for: .touchUpInside)
+        b.isHidden = true
+        return b
+    }()
+
     private lazy var arrowView: UIImageView = {
         let iv = UIImageView(image: UIImage(named: "icon_arrow_right")?.withRenderingMode(.alwaysTemplate))
         iv.tintColor = .white
@@ -28,7 +42,6 @@ final class ProfileInfoRowView: UIView {
 
     private lazy var separator: UIView = {
         let v = UIView()
-        // Very subtle divider — matches Figma opacity ~0.02, bumped slightly for visibility
         v.backgroundColor = UIColor.white.withAlphaComponent(0.08)
         return v
     }()
@@ -46,7 +59,7 @@ final class ProfileInfoRowView: UIView {
     // MARK: - Setup
 
     private func setupViews() {
-        [separator, labelText, valueText, arrowView].forEach { addSubview($0) }
+        [separator, labelText, valueText, addButton, arrowView].forEach { addSubview($0) }
     }
 
     private func setupLayout() {
@@ -70,12 +83,26 @@ final class ProfileInfoRowView: UIView {
             make.trailing.equalTo(arrowView.snp.leading).offset(-8)
             make.centerY.equalToSuperview()
         }
+
+        addButton.snp.makeConstraints { make in
+            make.trailing.equalTo(arrowView.snp.leading).offset(-8)
+            make.centerY.equalToSuperview()
+        }
     }
 
     // MARK: - Configure
 
-    func configure(label: String, value: String) {
+    func configure(label: String, value: String?) {
         labelText.text = label
+        let hasValue = value != nil && !value!.isEmpty
         valueText.text = value
+        valueText.isHidden = !hasValue
+        addButton.isHidden = hasValue
+    }
+
+    // MARK: - Actions
+
+    @objc private func addTapped() {
+        onAddTap?()
     }
 }
