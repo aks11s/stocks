@@ -46,7 +46,6 @@ final class ProfileViewController: UIViewController {
 
     private lazy var avatarLabel: UILabel = {
         let l = UILabel()
-        l.text = "U"
         l.font = AppFonts.bold(32)
         l.textColor = .appAccent
         l.textAlignment = .center
@@ -55,20 +54,16 @@ final class ProfileViewController: UIViewController {
 
     private lazy var usernameLabel: UILabel = {
         let l = UILabel()
-        l.attributedText = NSAttributedString(string: "User1234", attributes: [
-            .font: AppFonts.bold(18),
-            .foregroundColor: UIColor.white,
-            .kern: 18 * 0.0264,
-        ])
+        l.font = AppFonts.bold(18)
+        l.textColor = .white
         return l
     }()
 
-    private lazy var usernameRow  = makeRow(label: "Username",      value: "Username1234")
-    private lazy var emailRow     = makeRow(label: "Email",         value: "example@mail.com")
-    private lazy var phoneRow     = makeRow(label: "Mobile Number", value: "+1 234 567 8900")
-    private lazy var passwordRow  = makeRow(label: "Password",      value: "*********")
+    private lazy var usernameRow  = ProfileInfoRowView()
+    private lazy var emailRow     = ProfileInfoRowView()
+    private lazy var phoneRow     = ProfileInfoRowView()
+    private lazy var passwordRow  = ProfileInfoRowView()
 
-    // Closing separator at the bottom of the last row — matches Figma Vector 12 at content y=424
     private lazy var bottomSeparator: UIView = {
         let v = UIView()
         v.backgroundColor = UIColor.white.withAlphaComponent(0.08)
@@ -84,9 +79,14 @@ final class ProfileViewController: UIViewController {
         setupLayout()
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // Reload every time we come back from edit screen
+        loadProfile()
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        // Gradient covers exactly the top 175pt of the frame (Figma: Rectangle 49, h=175)
         gradientLayer.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 175)
     }
 
@@ -102,21 +102,18 @@ final class ProfileViewController: UIViewController {
     }
 
     private func setupLayout() {
-        // Header group: Figma absolute y=40. Status bar ≈ 44pt → safeArea.top + 0
         backButton.snp.makeConstraints { make in
             make.width.height.equalTo(44)
             make.leading.equalToSuperview().inset(24)
             make.top.equalTo(view.safeAreaLayoutGuide)
         }
 
-        // "Profile" title: Figma x=72 (24+48), vertically centered in back button
         titleLabel.snp.makeConstraints { make in
             make.leading.equalTo(backButton.snp.trailing).offset(4)
             make.centerY.equalTo(backButton)
         }
 
-        // Avatar: Figma content group y=111, absolute center x=207 (screen center).
-        // From safeArea: 111 - 44 = 67pt
+        // Avatar: Figma content group y=111, from safeArea: 111-44=67pt
         avatarView.snp.makeConstraints { make in
             make.width.height.equalTo(110)
             make.centerX.equalToSuperview()
@@ -127,14 +124,14 @@ final class ProfileViewController: UIViewController {
             make.center.equalToSuperview()
         }
 
-        // Username: Figma content y=124, avatar bottom+14pt (235-221=14)
+        // Username: Figma avatar bottom + 14pt gap
         usernameLabel.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
             make.top.equalTo(avatarView.snp.bottom).offset(14)
         }
 
-        // First separator (row top) at Figma content y=176 → username bottom+30pt (287-257=30)
-        // Each row is 62pt tall (Figma: 238-176=62)
+        // First separator at Figma content y=176 → username bottom + 30pt
+        // Each row is 62pt tall
         usernameRow.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview().inset(24)
             make.top.equalTo(usernameLabel.snp.bottom).offset(30)
@@ -159,7 +156,6 @@ final class ProfileViewController: UIViewController {
             make.height.equalTo(62)
         }
 
-        // Closing separator: Figma Vector 12 at content y=424, i.e. right after last row
         bottomSeparator.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview().inset(24)
             make.top.equalTo(passwordRow.snp.bottom)
@@ -167,12 +163,23 @@ final class ProfileViewController: UIViewController {
         }
     }
 
-    // MARK: - Helpers
+    // MARK: - Data
 
-    private func makeRow(label: String, value: String) -> ProfileInfoRowView {
-        let row = ProfileInfoRowView()
-        row.configure(label: label, value: value)
-        return row
+    private func loadProfile() {
+        let storage = ProfileStorage.shared
+
+        // Show first letter of username as avatar, fall back to "U"
+        let initial = storage.username?.first.map { String($0).uppercased() } ?? "U"
+        avatarLabel.text = initial
+        usernameLabel.text = storage.username ?? "User"
+
+        usernameRow.configure(label: "Username",      value: storage.username)
+        emailRow.configure(label: "Email",            value: storage.email)
+        phoneRow.configure(label: "Mobile Number",    value: storage.phone)
+
+        // Show masked dots if password is saved, nil otherwise
+        let maskedPassword = storage.passwordHash != nil ? "••••••••" : nil
+        passwordRow.configure(label: "Password", value: maskedPassword)
     }
 
     // MARK: - Actions
