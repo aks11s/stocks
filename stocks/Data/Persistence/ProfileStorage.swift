@@ -37,6 +37,13 @@ final class ProfileStorage {
         set { defaults.set(newValue, forKey: Key.password) }
     }
 
+    // Called right after sign-in to pre-populate whichever field the user authenticated with
+    func saveAuthCredentials(phone: String? = nil, email: String? = nil, password: String) {
+        if let phone, !phone.isEmpty { self.phone = phone }
+        if let email, !email.isEmpty { self.email = email }
+        self.passwordHash = password.simpleHash
+    }
+
     func save(username: String?, email: String?, phone: String?, password: String?) {
         self.username = username?.isEmpty == false ? username : nil
         self.email    = email?.isEmpty    == false ? email    : nil

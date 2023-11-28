@@ -35,6 +35,13 @@ final class AuthViewModel {
     func signIn(input: String, password: String) {
         guard validate(input: input, password: password) else { return }
         UserDefaults.standard.set(true, forKey: "isAuthenticated")
+        // Persist the credentials the user signed in with so the profile
+        // screen can display them immediately without manual entry
+        if inputMode == .phone {
+            ProfileStorage.shared.saveAuthCredentials(phone: input, password: password)
+        } else {
+            ProfileStorage.shared.saveAuthCredentials(email: input, password: password)
+        }
         onSuccess?()
     }
 
