@@ -5,6 +5,8 @@ final class ProfileInfoRowView: UIView {
 
     // Fired when the user taps "Add" on an empty field
     var onAddTap: (() -> Void)?
+    // Fired when the user taps anywhere on a filled row
+    var onRowTap: (() -> Void)?
 
     // MARK: - Subviews
 
@@ -60,6 +62,10 @@ final class ProfileInfoRowView: UIView {
 
     private func setupViews() {
         [separator, labelText, valueText, addButton, arrowView].forEach { addSubview($0) }
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(rowTapped))
+        addGestureRecognizer(tap)
+        isUserInteractionEnabled = true
     }
 
     private func setupLayout() {
@@ -104,5 +110,9 @@ final class ProfileInfoRowView: UIView {
 
     @objc private func addTapped() {
         onAddTap?()
+    }
+
+    @objc private func rowTapped() {
+        onRowTap?()
     }
 }
