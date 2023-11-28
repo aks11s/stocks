@@ -64,6 +64,30 @@ final class EditProfileViewController: UIViewController {
     private lazy var passwordField  = makeField(placeholder: "Password", isSecure: true)
     private lazy var phoneField     = makeField(placeholder: "Mobile Number", keyboardType: .phonePad)
 
+    // Save Changes: accent bg, dark text — Figma: 179×54, cornerRadius 16, bg #5ED5A8
+    private lazy var saveButton: UIButton = {
+        let b = UIButton(type: .system)
+        b.setTitle("Save Changes", for: .normal)
+        b.setTitleColor(.appButtonLabel, for: .normal)
+        b.titleLabel?.font = AppFonts.regular(18)
+        b.backgroundColor = .appAccent
+        b.layer.cornerRadius = 16
+        b.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
+        return b
+    }()
+
+    // Cancel: transparent bg, white text — Figma: 179×54, cornerRadius 16
+    private lazy var cancelButton: UIButton = {
+        let b = UIButton(type: .system)
+        b.setTitle("Cancel", for: .normal)
+        b.setTitleColor(.white, for: .normal)
+        b.titleLabel?.font = AppFonts.regular(18)
+        b.backgroundColor = UIColor.white.withAlphaComponent(0.05)
+        b.layer.cornerRadius = 16
+        b.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
+        return b
+    }()
+
     // Eye button toggles password visibility — Figma: Bulk Icons=Show, 44×44
     private lazy var eyeButton: UIButton = {
         let b = UIButton(type: .system)
@@ -112,6 +136,9 @@ final class EditProfileViewController: UIViewController {
         view.addSubview(titleLabel)
 
         separators.forEach { view.addSubview($0) }
+
+        view.addSubview(saveButton)
+        view.addSubview(cancelButton)
 
         [(usernameLabel, usernameField, nil),
          (emailLabel,    emailField,    nil),
@@ -195,6 +222,21 @@ final class EditProfileViewController: UIViewController {
             make.top.equalTo(separators[3].snp.bottom).offset(77)
             make.height.equalTo(0.5)
         }
+
+        // Buttons: Figma content y=549, each 179×54 with 8pt gap between them
+        cancelButton.snp.makeConstraints { make in
+            make.leading.equalToSuperview().inset(24)
+            make.top.equalTo(separators[4].snp.bottom).offset(60)
+            make.height.equalTo(54)
+        }
+
+        saveButton.snp.makeConstraints { make in
+            make.leading.equalTo(cancelButton.snp.trailing).offset(8)
+            make.trailing.equalToSuperview().inset(24)
+            make.width.equalTo(cancelButton)
+            make.top.equalTo(cancelButton)
+            make.height.equalTo(54)
+        }
     }
 
     private func layoutFieldRow(
@@ -271,6 +313,16 @@ final class EditProfileViewController: UIViewController {
     }
 
     // MARK: - Actions
+
+    @objc private func saveTapped() {
+        ProfileStorage.shared.save(
+            username: usernameField.text,
+            email:    emailField.text,
+            phone:    phoneField.text,
+            password: passwordField.text
+        )
+        dismiss(animated: true)
+    }
 
     @objc private func togglePassword() {
         passwordField.isSecureTextEntry.toggle()
