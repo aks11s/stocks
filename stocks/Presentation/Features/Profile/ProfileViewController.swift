@@ -36,7 +36,7 @@ final class ProfileViewController: UIViewController {
 
     private lazy var avatarView: UIView = {
         let v = UIView()
-        v.backgroundColor = UIColor.appAccent.withAlphaComponent(0.3)
+        v.backgroundColor = .appAccent
         v.layer.cornerRadius = 55
         v.layer.borderColor = UIColor.white.cgColor
         v.layer.borderWidth = 1
@@ -44,10 +44,17 @@ final class ProfileViewController: UIViewController {
         return v
     }()
 
+    private lazy var avatarImageView: UIImageView = {
+        let iv = UIImageView()
+        iv.contentMode = .scaleAspectFill
+        iv.isHidden = true
+        return iv
+    }()
+
     private lazy var avatarLabel: UILabel = {
         let l = UILabel()
         l.font = AppFonts.bold(32)
-        l.textColor = .appAccent
+        l.textColor = .appBackground
         l.textAlignment = .center
         return l
     }()
@@ -99,6 +106,7 @@ final class ProfileViewController: UIViewController {
          usernameRow, emailRow, phoneRow, passwordRow,
          bottomSeparator].forEach { view.addSubview($0) }
         avatarView.addSubview(avatarLabel)
+        avatarView.addSubview(avatarImageView)
     }
 
     private func setupLayout() {
@@ -122,6 +130,10 @@ final class ProfileViewController: UIViewController {
 
         avatarLabel.snp.makeConstraints { make in
             make.center.equalToSuperview()
+        }
+
+        avatarImageView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
         }
 
         // Username: Figma avatar bottom + 14pt gap
@@ -174,14 +186,21 @@ final class ProfileViewController: UIViewController {
     private func loadProfile() {
         let storage = ProfileStorage.shared
 
-        // Show first letter of username as avatar, fall back to "U"
-        let initial = storage.username?.first.map { String($0).uppercased() } ?? "U"
-        avatarLabel.text = initial
+        // Show saved photo if available, otherwise fall back to initial letter
+        if let data = storage.avatarImageData, let image = UIImage(data: data) {
+            avatarImageView.image = image
+            avatarImageView.isHidden = false
+            avatarLabel.isHidden = true
+        } else {
+            avatarImageView.isHidden = true
+            avatarLabel.isHidden = false
+            avatarLabel.text = storage.username?.first.map { String($0).uppercased() } ?? "U"
+        }
         usernameLabel.text = storage.username ?? "User"
 
         usernameRow.configure(label: "Username",      value: storage.username)
         emailRow.configure(label: "Email",            value: storage.email)
-        phoneRow.configure(label: "Mobile Number",    value: storage.phone)
+        phoneRow.configure(label: "Mobile Number",    value: storage.phone.map { formatPhone($0) })
 
         // Show masked dots if password is saved, nil otherwise
         let maskedPassword = storage.passwordHash != nil ? "••••••••" : nil
@@ -198,5 +217,26 @@ final class ProfileViewController: UIViewController {
 
     @objc private func backTapped() {
         dismiss(animated: true)
+    }
+
+    // MARK: - Helpers
+
+    private func formatPhone(_ input: String) -> String {
+        var digits = input.filter { $0.isNumber }
+        if digits.hasPrefix("7") || digits.hasPrefix("8") {
+            digits = String(digits.dropFirst())
+        }
+        let d = Array(digits.prefix(10))
+        guard !d.isEmpty else { return input }
+
+        var result = "+7"
+        result += " (\(String(d[0..<min(3, d.count)]))"
+        guard d.count >= 3 else { return result }
+        result += ") \(String(d[3..<min(6, d.count)]))"
+        guard d.count >= 6 else { return result }
+        result += "-\(String(d[6..<min(8, d.count)]))"
+        guard d.count >= 8 else { return result }
+        result += "-\(String(d[8..<min(10, d.count)]))"
+        return result
     }
 }
