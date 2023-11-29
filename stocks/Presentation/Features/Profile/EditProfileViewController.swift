@@ -1,6 +1,5 @@
 import UIKit
 import SnapKit
-import PhotosUI
 
 final class EditProfileViewController: UIViewController {
 
@@ -44,13 +43,6 @@ final class EditProfileViewController: UIViewController {
         return v
     }()
 
-    private lazy var avatarImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill
-        iv.isHidden = true
-        return iv
-    }()
-
     private lazy var avatarLabel: UILabel = {
         let l = UILabel()
         l.font = AppFonts.bold(32)
@@ -59,12 +51,11 @@ final class EditProfileViewController: UIViewController {
         return l
     }()
 
-    // Camera overlay on the avatar — tapping opens the photo library (Figma: camera-plus-outline, 36×36)
+    // Camera overlay on the avatar — Figma: camera-plus-outline, 36×36
     private lazy var cameraButton: UIButton = {
         let b = UIButton(type: .system)
-        b.setImage(UIImage(named: "icon_camera_gallery"), for: .normal)
+        b.setImage(UIImage(named: "icon_camera"), for: .normal)
         b.tintColor = .clear  // icon has its own colors baked in
-        b.addTarget(self, action: #selector(cameraTapped), for: .touchUpInside)
         return b
     }()
 
@@ -143,7 +134,6 @@ final class EditProfileViewController: UIViewController {
         view.layer.insertSublayer(gradientLayer, at: 0)
 
         avatarView.addSubview(avatarLabel)
-        avatarView.addSubview(avatarImageView)
         view.addSubview(avatarView)
         view.addSubview(cameraButton)
         view.addSubview(backButton)
@@ -190,12 +180,7 @@ final class EditProfileViewController: UIViewController {
             make.center.equalToSuperview()
         }
 
-        avatarImageView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-
         // Camera icon: Figma x=209 rel content (content x=24), avatar right-bottom corner
-        // Avatar trailing = screen center + 55 = 207+55=262, camera at 24+209=233 → trailing of avatar - 29pt
         cameraButton.snp.makeConstraints { make in
             make.width.height.equalTo(36)
             make.trailing.equalTo(avatarView.snp.trailing)
@@ -203,7 +188,6 @@ final class EditProfileViewController: UIViewController {
         }
 
         // Field rows: Figma content y starts at 111, first separator at content y=176
-        // From safeArea: 111+176-44 = 243pt → from avatar bottom (safeArea+177): 243-177=66pt
         layoutFieldRow(
             separator: separators[0],
             label: usernameLabel,
@@ -336,13 +320,7 @@ final class EditProfileViewController: UIViewController {
             passwordIsUnchanged = true
         }
 
-        if let data = s.avatarImageData, let image = UIImage(data: data) {
-            avatarImageView.image = image
-            avatarImageView.isHidden = false
-            avatarLabel.isHidden = true
-        } else {
-            avatarLabel.text = s.username?.first.map { String($0).uppercased() } ?? "U"
-        }
+        avatarLabel.text = s.username?.first.map { String($0).uppercased() } ?? "U"
     }
 
     // MARK: - Actions
@@ -355,15 +333,6 @@ final class EditProfileViewController: UIViewController {
             password: passwordIsUnchanged ? nil : passwordField.text
         )
         dismiss(animated: true)
-    }
-
-    @objc private func cameraTapped() {
-        var config = PHPickerConfiguration()
-        config.filter = .images
-        config.selectionLimit = 1
-        let picker = PHPickerViewController(configuration: config)
-        picker.delegate = self
-        present(picker, animated: true)
     }
 
     @objc private func togglePassword() {
@@ -422,26 +391,5 @@ extension EditProfileViewController: UITextFieldDelegate {
         guard d.count >= 8 else { return result }
         result += "-\(String(d[8..<min(10, d.count)]))"
         return result
-    }
-}
-
-// MARK: - PHPickerViewControllerDelegate
-
-extension EditProfileViewController: PHPickerViewControllerDelegate {
-    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-        picker.dismiss(animated: true)
-        guard let provider = results.first?.itemProvider,
-              provider.canLoadObject(ofClass: UIImage.self) else { return }
-
-        provider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
-            guard let self, let image = object as? UIImage else { return }
-            let data = image.jpegData(compressionQuality: 0.85)
-            DispatchQueue.main.async {
-                ProfileStorage.shared.avatarImageData = data
-                self.avatarImageView.image = image
-                self.avatarImageView.isHidden = false
-                self.avatarLabel.isHidden = true
-            }
-        }
     }
 }

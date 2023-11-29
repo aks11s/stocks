@@ -10,11 +10,10 @@ final class ProfileStorage {
     private let defaults = UserDefaults.standard
 
     private enum Key {
-        static let username    = "profile.username"
-        static let email       = "profile.email"
-        static let phone       = "profile.phone"
-        static let password    = "profile.passwordHash"
-        static let avatarImage = "profile.avatarImageData"
+        static let username = "profile.username"
+        static let email    = "profile.email"
+        static let phone    = "profile.phone"
+        static let password = "profile.passwordHash"
     }
 
     var username: String? {
@@ -30,11 +29,6 @@ final class ProfileStorage {
     var phone: String? {
         get { defaults.string(forKey: Key.phone) }
         set { defaults.set(newValue, forKey: Key.phone) }
-    }
-
-    var avatarImageData: Data? {
-        get { defaults.data(forKey: Key.avatarImage) }
-        set { defaults.set(newValue, forKey: Key.avatarImage) }
     }
 
     // Store only a simple hash — never keep plaintext passwords on device

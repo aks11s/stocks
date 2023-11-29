@@ -44,13 +44,6 @@ final class ProfileViewController: UIViewController {
         return v
     }()
 
-    private lazy var avatarImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill
-        iv.isHidden = true
-        return iv
-    }()
-
     private lazy var avatarLabel: UILabel = {
         let l = UILabel()
         l.font = AppFonts.bold(32)
@@ -106,7 +99,6 @@ final class ProfileViewController: UIViewController {
          usernameRow, emailRow, phoneRow, passwordRow,
          bottomSeparator].forEach { view.addSubview($0) }
         avatarView.addSubview(avatarLabel)
-        avatarView.addSubview(avatarImageView)
     }
 
     private func setupLayout() {
@@ -130,10 +122,6 @@ final class ProfileViewController: UIViewController {
 
         avatarLabel.snp.makeConstraints { make in
             make.center.equalToSuperview()
-        }
-
-        avatarImageView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
         }
 
         // Username: Figma avatar bottom + 14pt gap
@@ -186,16 +174,7 @@ final class ProfileViewController: UIViewController {
     private func loadProfile() {
         let storage = ProfileStorage.shared
 
-        // Show saved photo if available, otherwise fall back to initial letter
-        if let data = storage.avatarImageData, let image = UIImage(data: data) {
-            avatarImageView.image = image
-            avatarImageView.isHidden = false
-            avatarLabel.isHidden = true
-        } else {
-            avatarImageView.isHidden = true
-            avatarLabel.isHidden = false
-            avatarLabel.text = storage.username?.first.map { String($0).uppercased() } ?? "U"
-        }
+        avatarLabel.text = storage.username?.first.map { String($0).uppercased() } ?? "U"
         usernameLabel.text = storage.username ?? "User"
 
         usernameRow.configure(label: "Username",      value: storage.username)
