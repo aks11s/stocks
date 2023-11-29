@@ -1,5 +1,6 @@
 import UIKit
 import SnapKit
+import PhotosUI
 
 final class EditProfileViewController: UIViewController {
 
@@ -35,7 +36,7 @@ final class EditProfileViewController: UIViewController {
 
     private lazy var avatarView: UIView = {
         let v = UIView()
-        v.backgroundColor = UIColor.appAccent.withAlphaComponent(0.3)
+        v.backgroundColor = .appAccent
         v.layer.cornerRadius = 55
         v.layer.borderColor = UIColor.white.cgColor
         v.layer.borderWidth = 1
@@ -43,19 +44,27 @@ final class EditProfileViewController: UIViewController {
         return v
     }()
 
+    private lazy var avatarImageView: UIImageView = {
+        let iv = UIImageView()
+        iv.contentMode = .scaleAspectFill
+        iv.isHidden = true
+        return iv
+    }()
+
     private lazy var avatarLabel: UILabel = {
         let l = UILabel()
         l.font = AppFonts.bold(32)
-        l.textColor = .appAccent
+        l.textColor = .appBackground
         l.textAlignment = .center
         return l
     }()
 
-    // Camera overlay on the avatar — indicates the photo is tappable (Figma: 36×36, x=209 rel content)
+    // Camera overlay on the avatar — tapping opens the photo library (Figma: camera-plus-outline, 36×36)
     private lazy var cameraButton: UIButton = {
         let b = UIButton(type: .system)
-        b.setImage(UIImage(named: "icon_camera"), for: .normal)
+        b.setImage(UIImage(named: "icon_camera_gallery"), for: .normal)
         b.tintColor = .clear  // icon has its own colors baked in
+        b.addTarget(self, action: #selector(cameraTapped), for: .touchUpInside)
         return b
     }()
 
@@ -102,6 +111,10 @@ final class EditProfileViewController: UIViewController {
     private lazy var passwordLabel  = makeFieldLabel("Password")
     private lazy var phoneLabel     = makeFieldLabel("Mobile Number")
 
+    // Tracks whether the password field still shows the "already set" placeholder
+    // — if the user never touched it, we skip updating the hash on save
+    private var passwordIsUnchanged = false
+
     // Separators between field groups
     private lazy var separators: [UIView] = (0..<5).map { _ in
         let v = UIView()
@@ -130,6 +143,7 @@ final class EditProfileViewController: UIViewController {
         view.layer.insertSublayer(gradientLayer, at: 0)
 
         avatarView.addSubview(avatarLabel)
+        avatarView.addSubview(avatarImageView)
         view.addSubview(avatarView)
         view.addSubview(cameraButton)
         view.addSubview(backButton)
@@ -139,6 +153,9 @@ final class EditProfileViewController: UIViewController {
 
         view.addSubview(saveButton)
         view.addSubview(cancelButton)
+
+        phoneField.delegate = self
+        passwordField.delegate = self
 
         [(usernameLabel, usernameField, nil),
          (emailLabel,    emailField,    nil),
@@ -171,6 +188,10 @@ final class EditProfileViewController: UIViewController {
 
         avatarLabel.snp.makeConstraints { make in
             make.center.equalToSuperview()
+        }
+
+        avatarImageView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
         }
 
         // Camera icon: Figma x=209 rel content (content x=24), avatar right-bottom corner
@@ -306,10 +327,22 @@ final class EditProfileViewController: UIViewController {
         let s = ProfileStorage.shared
         usernameField.text = s.username
         emailField.text    = s.email
-        phoneField.text    = s.phone
+        phoneField.text    = s.phone.map { formatPhone($0) }
 
-        let initial = s.username?.first.map { String($0).uppercased() } ?? "U"
-        avatarLabel.text = initial
+        // Show placeholder dots if a password is already saved —
+        // user must retype to change it, otherwise we keep the existing hash
+        if s.passwordHash != nil {
+            passwordField.text = "••••••••"
+            passwordIsUnchanged = true
+        }
+
+        if let data = s.avatarImageData, let image = UIImage(data: data) {
+            avatarImageView.image = image
+            avatarImageView.isHidden = false
+            avatarLabel.isHidden = true
+        } else {
+            avatarLabel.text = s.username?.first.map { String($0).uppercased() } ?? "U"
+        }
     }
 
     // MARK: - Actions
@@ -319,9 +352,18 @@ final class EditProfileViewController: UIViewController {
             username: usernameField.text,
             email:    emailField.text,
             phone:    phoneField.text,
-            password: passwordField.text
+            password: passwordIsUnchanged ? nil : passwordField.text
         )
         dismiss(animated: true)
+    }
+
+    @objc private func cameraTapped() {
+        var config = PHPickerConfiguration()
+        config.filter = .images
+        config.selectionLimit = 1
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        present(picker, animated: true)
     }
 
     @objc private func togglePassword() {
@@ -330,5 +372,76 @@ final class EditProfileViewController: UIViewController {
 
     @objc private func backTapped() {
         dismiss(animated: true)
+    }
+}
+
+// MARK: - UITextFieldDelegate
+
+extension EditProfileViewController: UITextFieldDelegate {
+
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        // Clear the placeholder dots so the user starts fresh when changing password
+        if textField == passwordField && passwordIsUnchanged {
+            passwordField.text = ""
+            passwordIsUnchanged = false
+        }
+    }
+
+    func textField(_ textField: UITextField,
+                   shouldChangeCharactersIn range: NSRange,
+                   replacementString string: String) -> Bool {
+        guard textField == phoneField else { return true }
+
+        let current = textField.text ?? ""
+        guard let swiftRange = Range(range, in: current) else { return false }
+        let updated = current.replacingCharacters(in: swiftRange, with: string)
+
+        var digits = updated.filter { $0.isNumber }
+        if digits.hasPrefix("7") || digits.hasPrefix("8") {
+            digits = String(digits.dropFirst())
+        }
+        textField.text = formatPhone(String(digits.prefix(10)))
+        return false
+    }
+
+    // Formats raw digits (or already-masked string) into +7 (XXX) XXX-XX-XX
+    private func formatPhone(_ input: String) -> String {
+        var digits = input.filter { $0.isNumber }
+        if digits.hasPrefix("7") || digits.hasPrefix("8") {
+            digits = String(digits.dropFirst())
+        }
+        let d = Array(digits.prefix(10))
+        guard !d.isEmpty else { return input }
+
+        var result = "+7"
+        result += " (\(String(d[0..<min(3, d.count)]))"
+        guard d.count >= 3 else { return result }
+        result += ") \(String(d[3..<min(6, d.count)]))"
+        guard d.count >= 6 else { return result }
+        result += "-\(String(d[6..<min(8, d.count)]))"
+        guard d.count >= 8 else { return result }
+        result += "-\(String(d[8..<min(10, d.count)]))"
+        return result
+    }
+}
+
+// MARK: - PHPickerViewControllerDelegate
+
+extension EditProfileViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+        guard let provider = results.first?.itemProvider,
+              provider.canLoadObject(ofClass: UIImage.self) else { return }
+
+        provider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
+            guard let self, let image = object as? UIImage else { return }
+            let data = image.jpegData(compressionQuality: 0.85)
+            DispatchQueue.main.async {
+                ProfileStorage.shared.avatarImageData = data
+                self.avatarImageView.image = image
+                self.avatarImageView.isHidden = false
+                self.avatarLabel.isHidden = true
+            }
+        }
     }
 }
