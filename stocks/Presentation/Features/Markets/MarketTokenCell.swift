@@ -1,5 +1,6 @@
 import UIKit
 import SnapKit
+import DGCharts
 
 final class MarketTokenCell: UITableViewCell {
 
@@ -27,6 +28,21 @@ final class MarketTokenCell: UITableViewCell {
         l.font = AppFonts.regular(12)
         l.textColor = .appTextSecondary
         return l
+    }()
+
+    // Mini sparkline chart — Figma: 142.5×31, uptrend green / downtrend red
+    private lazy var chartView: LineChartView = {
+        let c = LineChartView()
+        c.isUserInteractionEnabled = false
+        c.legend.enabled = false
+        c.xAxis.enabled = false
+        c.leftAxis.enabled = false
+        c.rightAxis.enabled = false
+        c.drawGridBackgroundEnabled = false
+        c.drawBordersEnabled = false
+        c.minOffset = 0
+        c.setViewPortOffsets(left: 0, top: 4, right: 0, bottom: 4)
+        return c
     }()
 
     private lazy var priceLabel: UILabel = {
@@ -65,9 +81,8 @@ final class MarketTokenCell: UITableViewCell {
     // MARK: - Setup
 
     private func setupViews() {
-        [logoView, nameLabel, pairLabel, priceLabel, changeLabel, separator].forEach {
-            contentView.addSubview($0)
-        }
+        [logoView, nameLabel, pairLabel, chartView,
+         priceLabel, changeLabel, separator].forEach { contentView.addSubview($0) }
     }
 
     private func setupLayout() {
@@ -87,6 +102,14 @@ final class MarketTokenCell: UITableViewCell {
             make.top.equalTo(nameLabel.snp.bottom).offset(4)
         }
 
+        // Chart: 142.5×31, x=162 relative to content — centered vertically
+        chartView.snp.makeConstraints { make in
+            make.leading.equalToSuperview().offset(109)   // 53(name offset)+56 gap ≈ logo+109
+            make.width.equalTo(143)
+            make.height.equalTo(31)
+            make.centerY.equalToSuperview()
+        }
+
         priceLabel.snp.makeConstraints { make in
             make.trailing.equalToSuperview()
             make.top.equalTo(nameLabel)
@@ -100,8 +123,7 @@ final class MarketTokenCell: UITableViewCell {
         }
 
         separator.snp.makeConstraints { make in
-            make.leading.trailing.equalToSuperview()
-            make.bottom.equalToSuperview()
+            make.leading.trailing.bottom.equalToSuperview()
             make.height.equalTo(1)
         }
     }
@@ -115,5 +137,30 @@ final class MarketTokenCell: UITableViewCell {
         priceLabel.text = token.price
         changeLabel.text = token.change
         changeLabel.textColor = token.isUptrend ? .appAccent : .appRed
+        configureChart(points: token.chartPoints, isUptrend: token.isUptrend)
+    }
+
+    private func configureChart(points: [Double], isUptrend: Bool) {
+        let color = isUptrend ? UIColor.appAccent : UIColor.appRed
+
+        let entries = points.enumerated().map { ChartDataEntry(x: Double($0.offset), y: $0.element) }
+        let dataSet = LineChartDataSet(entries: entries)
+        dataSet.drawCirclesEnabled = false
+        dataSet.drawValuesEnabled = false
+        dataSet.lineWidth = 1.5
+        dataSet.setColor(color)
+        dataSet.mode = .cubicBezier
+
+        // Gradient fill below the line
+        let gradientColors = [color.withAlphaComponent(0.4).cgColor,
+                              color.withAlphaComponent(0.0).cgColor] as CFArray
+        let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                                  colors: gradientColors,
+                                  locations: [0, 1])!
+        dataSet.fill = LinearGradientFill(gradient: gradient, angle: 270)
+        dataSet.drawFilledEnabled = true
+
+        chartView.data = LineChartData(dataSet: dataSet)
+        chartView.notifyDataSetChanged()
     }
 }
