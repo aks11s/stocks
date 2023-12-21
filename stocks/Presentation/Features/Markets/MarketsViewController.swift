@@ -10,7 +10,6 @@ final class MarketsViewController: UIViewController {
     private lazy var headerView: UIView = {
         let v = UIView()
         v.backgroundColor = .appBackground
-        // shadow matching Figma: 0 12 16 rgba(22,28,34,0.5)
         v.layer.shadowColor = UIColor(red: 22/255, green: 28/255, blue: 34/255, alpha: 0.5).cgColor
         v.layer.shadowOffset = CGSize(width: 0, height: 12)
         v.layer.shadowRadius = 16
@@ -41,8 +40,6 @@ final class MarketsViewController: UIViewController {
 
     // MARK: - Content subviews
 
-    private lazy var filterTabs = MarketFilterTabsView()
-
     private lazy var tableView: UITableView = {
         let tv = UITableView()
         tv.backgroundColor = .clear
@@ -57,20 +54,16 @@ final class MarketsViewController: UIViewController {
     private lazy var addFavoriteButton: UIButton = {
         let b = UIButton(type: .system)
 
-        // Dashed border layer
         let dash = CAShapeLayer()
         dash.strokeColor = UIColor(red: 62/255, green: 71/255, blue: 79/255, alpha: 0.5).cgColor
         dash.fillColor = UIColor.clear.cgColor
         dash.lineWidth = 2
         dash.lineDashPattern = [4, 5]
         b.layer.addSublayer(dash)
-        b.layer.cornerRadius = 12
-        b.clipsToBounds = false
-
-        // Store the dash layer so we can update its path on layout
         b.layer.setValue(dash, forKey: "dashLayer")
 
         b.backgroundColor = UIColor(red: 62/255, green: 71/255, blue: 79/255, alpha: 0.1)
+        b.layer.cornerRadius = 12
         b.setTitle("  Add Favorite", for: .normal)
         b.setTitleColor(.appTextSecondary, for: .normal)
         b.titleLabel?.font = AppFonts.regular(18)
@@ -90,7 +83,6 @@ final class MarketsViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        // Update dashed border path after layout
         if let dash = addFavoriteButton.layer.value(forKey: "dashLayer") as? CAShapeLayer {
             dash.path = UIBezierPath(roundedRect: addFavoriteButton.bounds, cornerRadius: 12).cgPath
         }
@@ -99,7 +91,6 @@ final class MarketsViewController: UIViewController {
     // MARK: - Setup
 
     private func setupViews() {
-        // Header
         view.addSubview(headerView)
         headerView.addSubview(avatarView)
         avatarView.addSubview(avatarLabel)
@@ -107,23 +98,22 @@ final class MarketsViewController: UIViewController {
         headerView.addSubview(scanButton)
         headerView.addSubview(notifButton)
 
-        // Content
-        view.addSubview(filterTabs)
         view.addSubview(tableView)
         view.addSubview(addFavoriteButton)
     }
 
     private func setupLayout() {
-        // Header: 414×95 at top
+        // Header stretches from screen top to safeArea.top + 51pt
+        // (Figma: content icons at y=37–41 from top of 95pt header which sits below status bar)
         headerView.snp.makeConstraints { make in
             make.top.leading.trailing.equalToSuperview()
-            make.height.equalTo(95)
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.top).offset(51)
         }
 
-        // Avatar: 36×36 at x=24, y=41 (Figma)
+        // Avatar: 36×36, 41pt below safeArea top — matches Figma y=41 within content area
         avatarView.snp.makeConstraints { make in
             make.leading.equalToSuperview().inset(24)
-            make.top.equalToSuperview().inset(41)
+            make.top.equalTo(view.safeAreaLayoutGuide).offset(8)
             make.width.height.equalTo(36)
         }
 
@@ -131,40 +121,33 @@ final class MarketsViewController: UIViewController {
             make.center.equalToSuperview()
         }
 
-        // Icons: 44×44, right side — Scan x=304, Search x=252, Notif x=356
+        // Icons: right side, vertically aligned with avatar
         notifButton.snp.makeConstraints { make in
-            make.trailing.equalToSuperview().inset(14)   // 414-356=58 → inset 14 (44pt button)
-            make.top.equalToSuperview().inset(37)
+            make.trailing.equalToSuperview().inset(14)
+            make.centerY.equalTo(avatarView)
             make.width.height.equalTo(44)
         }
 
         scanButton.snp.makeConstraints { make in
             make.trailing.equalTo(notifButton.snp.leading)
-            make.top.equalTo(notifButton)
+            make.centerY.equalTo(avatarView)
             make.width.height.equalTo(44)
         }
 
         searchButton.snp.makeConstraints { make in
             make.trailing.equalTo(scanButton.snp.leading)
-            make.top.equalTo(notifButton)
+            make.centerY.equalTo(avatarView)
             make.width.height.equalTo(44)
         }
 
-        // Filter tabs: 366×46 at x=24, y=115
-        filterTabs.snp.makeConstraints { make in
-            make.leading.trailing.equalToSuperview().inset(24)
-            make.top.equalTo(headerView.snp.bottom).offset(20)
-            make.height.equalTo(46)
-        }
-
-        // Table: below filter tabs, above Add Favorite button
+        // Table: directly below header, above Add Favorite
         tableView.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview().inset(24)
-            make.top.equalTo(filterTabs.snp.bottom).offset(10)
+            make.top.equalTo(headerView.snp.bottom).offset(20)
             make.bottom.equalTo(addFavoriteButton.snp.top).offset(-12)
         }
 
-        // Add Favorite: 366×60, y=677 from screen top
+        // Add Favorite: 366×60, above bottom safe area
         addFavoriteButton.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview().inset(24)
             make.height.equalTo(60)
