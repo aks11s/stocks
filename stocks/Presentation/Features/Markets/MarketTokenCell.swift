@@ -102,10 +102,10 @@ final class MarketTokenCell: UITableViewCell {
             make.top.equalTo(nameLabel.snp.bottom).offset(4)
         }
 
-        // Chart: 142.5×31, x=162 relative to content — centered vertically
+        // Chart: 142.5×31 — Figma x=162 from content leading, centered vertically in 81pt row
         chartView.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(109)   // 53(name offset)+56 gap ≈ logo+109
-            make.width.equalTo(143)
+            make.leading.equalToSuperview().offset(162)
+            make.width.equalTo(142)
             make.height.equalTo(31)
             make.centerY.equalToSuperview()
         }
