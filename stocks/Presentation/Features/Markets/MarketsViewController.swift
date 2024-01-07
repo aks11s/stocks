@@ -5,7 +5,7 @@ final class MarketsViewController: UIViewController {
 
     private let viewModel = MarketViewModel()
 
-    // MARK: - Header subviews
+    // MARK: - Header
 
     private lazy var headerView: UIView = {
         let v = UIView()
@@ -38,7 +38,7 @@ final class MarketsViewController: UIViewController {
     private lazy var scanButton: UIButton   = makeHeaderIcon("icon_scan")
     private lazy var notifButton: UIButton  = makeHeaderIcon("icon_notif")
 
-    // MARK: - Content subviews
+    // MARK: - Content
 
     private lazy var tableView: UITableView = {
         let tv = UITableView()
@@ -47,13 +47,39 @@ final class MarketsViewController: UIViewController {
         tv.showsVerticalScrollIndicator = false
         tv.register(MarketTokenCell.self, forCellReuseIdentifier: MarketTokenCell.reuseId)
         tv.dataSource = self
+        tv.delegate = self
         tv.rowHeight = 81
+        // Pull-to-refresh
+        tv.refreshControl = refreshControl
         return tv
+    }()
+
+    private lazy var refreshControl: UIRefreshControl = {
+        let r = UIRefreshControl()
+        r.tintColor = .appAccent
+        r.addTarget(self, action: #selector(handleRefresh), for: .valueChanged)
+        return r
+    }()
+
+    private lazy var loadingIndicator: UIActivityIndicatorView = {
+        let a = UIActivityIndicatorView(style: .medium)
+        a.color = .appAccent
+        a.hidesWhenStopped = true
+        return a
+    }()
+
+    private lazy var errorLabel: UILabel = {
+        let l = UILabel()
+        l.font = AppFonts.regular(14)
+        l.textColor = .appTextSecondary
+        l.textAlignment = .center
+        l.numberOfLines = 0
+        l.isHidden = true
+        return l
     }()
 
     private lazy var addFavoriteButton: UIButton = {
         let b = UIButton(type: .system)
-
         let dash = CAShapeLayer()
         dash.strokeColor = UIColor(red: 62/255, green: 71/255, blue: 79/255, alpha: 0.5).cgColor
         dash.fillColor = UIColor.clear.cgColor
@@ -61,7 +87,6 @@ final class MarketsViewController: UIViewController {
         dash.lineDashPattern = [4, 5]
         b.layer.addSublayer(dash)
         b.layer.setValue(dash, forKey: "dashLayer")
-
         b.backgroundColor = UIColor(red: 62/255, green: 71/255, blue: 79/255, alpha: 0.1)
         b.layer.cornerRadius = 12
         b.setTitle("  Add Favorite", for: .normal)
@@ -72,6 +97,10 @@ final class MarketsViewController: UIViewController {
         return b
     }()
 
+    // MARK: - State
+
+    private var tokens: [MarketToken] = []
+
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
@@ -79,6 +108,8 @@ final class MarketsViewController: UIViewController {
         view.backgroundColor = .appBackground
         setupViews()
         setupLayout()
+        bindViewModel()
+        viewModel.load()
     }
 
     override func viewDidLayoutSubviews() {
@@ -99,18 +130,17 @@ final class MarketsViewController: UIViewController {
         headerView.addSubview(notifButton)
 
         view.addSubview(tableView)
+        view.addSubview(loadingIndicator)
+        view.addSubview(errorLabel)
         view.addSubview(addFavoriteButton)
     }
 
     private func setupLayout() {
-        // Header stretches from screen top to safeArea.top + 51pt
-        // (Figma: content icons at y=37–41 from top of 95pt header which sits below status bar)
         headerView.snp.makeConstraints { make in
             make.top.leading.trailing.equalToSuperview()
             make.bottom.equalTo(view.safeAreaLayoutGuide.snp.top).offset(51)
         }
 
-        // Avatar: 36×36, 41pt below safeArea top — matches Figma y=41 within content area
         avatarView.snp.makeConstraints { make in
             make.leading.equalToSuperview().inset(24)
             make.top.equalTo(view.safeAreaLayoutGuide).offset(8)
@@ -121,7 +151,6 @@ final class MarketsViewController: UIViewController {
             make.center.equalToSuperview()
         }
 
-        // Icons: right side, vertically aligned with avatar
         notifButton.snp.makeConstraints { make in
             make.trailing.equalToSuperview().inset(14)
             make.centerY.equalTo(avatarView)
@@ -140,14 +169,21 @@ final class MarketsViewController: UIViewController {
             make.width.height.equalTo(44)
         }
 
-        // Table: directly below header, above Add Favorite
         tableView.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview().inset(24)
             make.top.equalTo(headerView.snp.bottom).offset(20)
             make.bottom.equalTo(addFavoriteButton.snp.top).offset(-12)
         }
 
-        // Add Favorite: 366×60, above bottom safe area
+        loadingIndicator.snp.makeConstraints { make in
+            make.center.equalTo(tableView)
+        }
+
+        errorLabel.snp.makeConstraints { make in
+            make.center.equalTo(tableView)
+            make.leading.trailing.equalToSuperview().inset(32)
+        }
+
         addFavoriteButton.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview().inset(24)
             make.height.equalTo(60)
@@ -155,7 +191,35 @@ final class MarketsViewController: UIViewController {
         }
     }
 
-    // MARK: - Helpers
+    // MARK: - Bind
+
+    private func bindViewModel() {
+        viewModel.onStateChange = { [weak self] state in
+            guard let self else { return }
+            switch state {
+            case .loading:
+                self.loadingIndicator.startAnimating()
+                self.errorLabel.isHidden = true
+            case .loaded(let list):
+                self.tokens = list
+                self.tableView.reloadData()
+                self.loadingIndicator.stopAnimating()
+                self.refreshControl.endRefreshing()
+                self.errorLabel.isHidden = true
+            case .error(let msg):
+                self.loadingIndicator.stopAnimating()
+                self.refreshControl.endRefreshing()
+                self.errorLabel.text = msg
+                self.errorLabel.isHidden = false
+            }
+        }
+    }
+
+    // MARK: - Actions
+
+    @objc private func handleRefresh() {
+        viewModel.reload()
+    }
 
     private func makeHeaderIcon(_ name: String) -> UIButton {
         let b = UIButton(type: .system)
@@ -169,13 +233,30 @@ final class MarketsViewController: UIViewController {
 // MARK: - UITableViewDataSource
 
 extension MarketsViewController: UITableViewDataSource {
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.tokens.count
+        tokens.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: MarketTokenCell.reuseId, for: indexPath) as! MarketTokenCell
-        cell.configure(with: viewModel.tokens[indexPath.row])
+        cell.configure(with: tokens[indexPath.row])
         return cell
+    }
+}
+
+// MARK: - UITableViewDelegate
+
+extension MarketsViewController: UITableViewDelegate {
+
+    // Swipe-to-delete removes token from favorites
+    func tableView(_ tableView: UITableView,
+                   trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let delete = UIContextualAction(style: .destructive, title: "Remove") { [weak self] _, _, done in
+            self?.viewModel.removeFavorite(at: indexPath.row)
+            done(true)
+        }
+        delete.backgroundColor = .appRed
+        return UISwipeActionsConfiguration(actions: [delete])
     }
 }
