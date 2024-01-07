@@ -12,7 +12,7 @@ enum KlineInterval: String, CaseIterable {
 }
 
 enum BinanceEndpoint {
-    static let baseURL = "https://api.binance.com"
+    static let baseURL = "https://api.mexc.com"
 
     /// 24h rolling ticker stats; pass nil to fetch all symbols at once
     case ticker24h(symbol: String? = nil)
