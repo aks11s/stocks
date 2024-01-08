@@ -15,7 +15,8 @@ final class BinanceWebSocketService: BinanceWebSocketServiceProtocol {
     private let socket: WebSocketServiceProtocol
     private let decoder = JSONDecoder()
 
-    // Keyed by stream name so the Detail screen can open kline and ticker for different symbols simultaneously
+    private var pendingStreams: [BinanceStream] = []
+
     private var miniTickerContinuation: AsyncStream<[MiniTickerDTO]>.Continuation?
     private var tickerContinuations:     [String: AsyncStream<TickerDTO>.Continuation]     = [:]
     private var klineContinuations:      [String: AsyncStream<KlineDTO>.Continuation]      = [:]
@@ -26,10 +27,17 @@ final class BinanceWebSocketService: BinanceWebSocketServiceProtocol {
     init(socket: WebSocketServiceProtocol = WebSocketService()) {
         self.socket = socket
         self.socket.onData = { [weak self] data in self?.route(data) }
+        // Send SUBSCRIPTION message once the connection is established
+        self.socket.onConnect = { [weak self] in
+            guard let self else { return }
+            let msg = BinanceStream.subscriptionMessage(for: self.pendingStreams)
+            self.socket.send(msg)
+        }
     }
 
     func connect(streams: [BinanceStream]) {
-        socket.connect(url: BinanceStream.combinedURL(for: streams))
+        pendingStreams = streams
+        socket.connect(url: BinanceStream.wsURL)
     }
 
     func disconnect() {
@@ -71,40 +79,41 @@ final class BinanceWebSocketService: BinanceWebSocketServiceProtocol {
 
     // MARK: - Message routing
 
-    // Combined stream wraps every message in an envelope — we unwrap it first, then route by stream name
+    // MEXC envelope: {"c":"<channel>","d":{...},"t":<timestamp>}
     private func route(_ data: Data) {
         guard
             let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let streamName = json["stream"] as? String,
-            let rawPayload = json["data"],
+            let channel = json["c"] as? String,
+            let rawPayload = json["d"],
             let payload = try? JSONSerialization.data(withJSONObject: rawPayload)
         else { return }
 
-        let sym = streamName.components(separatedBy: "@").first ?? ""
-
-        if streamName == "!miniTicker@arr" {
-            if let v = try? decoder.decode([MiniTickerDTO].self, from: payload) {
+        if channel == "spot@public.miniTickers.v3.api" {
+            // MEXC wraps the array in a "data" key inside "d"
+            if let wrapper = json["d"] as? [String: Any],
+               let arr = wrapper["data"],
+               let arrData = try? JSONSerialization.data(withJSONObject: arr),
+               let v = try? decoder.decode([MiniTickerDTO].self, from: arrData) {
                 miniTickerContinuation?.yield(v)
             }
-        } else if streamName.hasSuffix("@ticker") {
-            if let v = try? decoder.decode(TickerDTO.self, from: payload) {
-                tickerContinuations[sym]?.yield(v)
-            }
-        } else if streamName.contains("@kline_") {
+        } else if channel.contains("kline") {
             if let v = try? decoder.decode(KlineDTO.self, from: payload) {
-                klineContinuations[streamName]?.yield(v)
+                klineContinuations[channel]?.yield(v)
             }
-        } else if streamName.contains("@depth") {
+        } else if channel.contains("depth") {
             if let v = try? decoder.decode(DepthDTO.self, from: payload) {
-                depthContinuations[sym]?.yield(v)
+                let sym = channel.components(separatedBy: "@").dropFirst(3).first ?? ""
+                depthContinuations[sym.lowercased()]?.yield(v)
             }
-        } else if streamName.hasSuffix("@aggTrade") {
+        } else if channel.contains("deals") {
             if let v = try? decoder.decode(AggTradeDTO.self, from: payload) {
-                aggTradeContinuations[sym]?.yield(v)
+                let sym = channel.components(separatedBy: "@").dropFirst(3).first ?? ""
+                aggTradeContinuations[sym.lowercased()]?.yield(v)
             }
-        } else if streamName.hasSuffix("@bookTicker") {
+        } else if channel.contains("bookTicker") {
             if let v = try? decoder.decode(BookTickerDTO.self, from: payload) {
-                bookTickerContinuations[sym]?.yield(v)
+                let sym = channel.components(separatedBy: "@").dropFirst(3).first ?? ""
+                bookTickerContinuations[sym.lowercased()]?.yield(v)
             }
         }
     }
