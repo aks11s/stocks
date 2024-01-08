@@ -6,44 +6,44 @@ enum DepthLevel: String {
     case twenty = "20"
 }
 
+// Stream channel names match MEXC subscription format
 enum BinanceStream {
-    /// Price + volume updates for every symbol — background feed for Home/Markets/Wallet
     case allMiniTickers
-    /// Full 24h stats for one symbol — Detail screen header
     case ticker(symbol: String)
-    /// OHLCV candles — Detail screen chart
     case kline(symbol: String, interval: KlineInterval)
-    /// Order book — Detail screen depth view
-    case depth(symbol: String, levels: DepthLevel = .twenty)
-    /// Executed trades feed — Detail screen trade list
+    case depth(symbol: String, levels: DepthLevel)
     case aggTrade(symbol: String)
-    /// Best bid and ask — Detail screen buy/sell price display
     case bookTicker(symbol: String)
 
+    // MEXC subscription channel name
     var name: String {
         switch self {
         case .allMiniTickers:
-            return "!miniTicker@arr"
+            return "spot@public.miniTickers.v3.api"
         case .ticker(let symbol):
-            return "\(symbol.lowercased())@ticker"
+            return "spot@public.bookTicker.v3.api@\(symbol)"
         case .kline(let symbol, let interval):
-            return "\(symbol.lowercased())@kline_\(interval.rawValue)"
+            return "spot@public.kline.v3.api@\(symbol)@\(interval.rawValue)"
         case .depth(let symbol, let levels):
-            return "\(symbol.lowercased())@depth\(levels.rawValue)"
+            return "spot@public.limit.depth.v3.api@\(symbol)@\(levels.rawValue)"
         case .aggTrade(let symbol):
-            return "\(symbol.lowercased())@aggTrade"
+            return "spot@public.deals.v3.api@\(symbol)"
         case .bookTicker(let symbol):
-            return "\(symbol.lowercased())@bookTicker"
+            return "spot@public.bookTicker.v3.api@\(symbol)"
         }
     }
 }
 
 extension BinanceStream {
-    private static let wsBase = "wss://stream.binance.com:9443"
+    // MEXC uses a single WS endpoint — channels are selected via SUBSCRIPTION messages after connect
+    static let wsURL = URL(string: "wss://wbs-api.mexc.com/ws")!
 
-    /// Binance supports up to 1024 streams per connection — combining them avoids a separate WebSocket handshake per stream
-    static func combinedURL(for streams: [BinanceStream]) -> URL {
-        let names = streams.map { $0.name }.joined(separator: "/")
-        return URL(string: "\(wsBase)/stream?streams=\(names)")!
+    // JSON subscription message for a set of streams
+    static func subscriptionMessage(for streams: [BinanceStream]) -> String {
+        let params = streams.map { "\"\($0.name)\"" }.joined(separator: ",")
+        return "{\"method\":\"SUBSCRIPTION\",\"params\":[\(params)]}"
     }
+
+    // Legacy helper — kept so call sites compile unchanged
+    static func combinedURL(for streams: [BinanceStream]) -> URL { wsURL }
 }

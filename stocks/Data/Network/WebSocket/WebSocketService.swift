@@ -6,6 +6,7 @@ protocol WebSocketServiceProtocol: AnyObject {
     var onConnect: (() -> Void)? { get set }
     var onDisconnect: ((Error?) -> Void)? { get set }
     func connect(url: URL)
+    func send(_ text: String)
     func disconnect()
 }
 
@@ -22,6 +23,10 @@ final class WebSocketService: WebSocketServiceProtocol, WebSocketDelegate {
         socket = WebSocket(request: request)
         socket?.delegate = self
         socket?.connect()
+    }
+
+    func send(_ text: String) {
+        socket?.write(string: text)
     }
 
     func disconnect() {
