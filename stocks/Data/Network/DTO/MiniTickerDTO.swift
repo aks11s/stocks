@@ -1,6 +1,7 @@
 import Foundation
 
-// Keeps prices current across the whole app — one stream for all symbols is much cheaper than a ticker per symbol
+// MEXC miniTicker payload — one entry per symbol inside the "data" array
+// MEXC field names: s=symbol, c=close, o=open, h=high, l=low, v=baseVolume, q=quoteVolume
 struct MiniTickerDTO: Decodable {
     let symbol: String
     let closePrice: String
