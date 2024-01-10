@@ -252,11 +252,28 @@ extension MarketsViewController: UITableViewDelegate {
     // Swipe-to-delete removes token from favorites
     func tableView(_ tableView: UITableView,
                    trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let delete = UIContextualAction(style: .destructive, title: "Remove") { [weak self] _, _, done in
+        let delete = UIContextualAction(style: .destructive, title: nil) { [weak self] _, _, done in
             self?.viewModel.removeFavorite(at: indexPath.row)
             done(true)
         }
-        delete.backgroundColor = .appRed
+        delete.image = makeTrashIcon()
+        // match screen background so only the icon bubble is visible
+        delete.backgroundColor = .appBackground
         return UISwipeActionsConfiguration(actions: [delete])
+    }
+
+    private func makeTrashIcon() -> UIImage {
+        let size = CGSize(width: 52, height: 52)
+        return UIGraphicsImageRenderer(size: size).image { _ in
+            UIColor.appRed.setFill()
+            UIBezierPath(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: 14).fill()
+            let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
+            if let icon = UIImage(systemName: "trash", withConfiguration: config)?
+                .withTintColor(.white, renderingMode: .alwaysOriginal) {
+                let origin = CGPoint(x: (size.width - icon.size.width) / 2,
+                                     y: (size.height - icon.size.height) / 2)
+                icon.draw(at: origin)
+            }
+        }
     }
 }
