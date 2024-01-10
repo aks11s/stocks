@@ -18,8 +18,8 @@ final class FavoritesStorage {
     }
 
     private static let defaults_symbols = [
-        "BTCUSDT", "SOLUSDT", "ADAUSDT",
-        "SHIBUSDT", "MFTUSDT", "RENUSDT"
+        "BTCUSDT", "ETHUSDT", "SOLUSDT",
+        "BNBUSDT", "ADAUSDT", "SHIBUSDT"
     ]
 
     var symbols: [String] {

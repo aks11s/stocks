@@ -1,14 +1,15 @@
 import Foundation
 
+// MEXC interval strings differ from Binance — "60m" instead of "1h", "1W" instead of "1w"
 enum KlineInterval: String, CaseIterable {
     case oneMinute       = "1m"
     case fiveMinutes     = "5m"
     case fifteenMinutes  = "15m"
     case thirtyMinutes   = "30m"
-    case oneHour         = "1h"
+    case oneHour         = "60m"
     case fourHours       = "4h"
     case oneDay          = "1d"
-    case oneWeek         = "1w"
+    case oneWeek         = "1W"
 }
 
 enum BinanceEndpoint {
