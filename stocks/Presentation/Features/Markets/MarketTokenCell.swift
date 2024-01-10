@@ -102,10 +102,10 @@ final class MarketTokenCell: UITableViewCell {
             make.top.equalTo(nameLabel.snp.bottom).offset(4)
         }
 
-        // Chart: 142.5×31 — Figma x=162 from content leading, centered vertically in 81pt row
+        // Chart spans from after the token name column to just before the price label
         chartView.snp.makeConstraints { make in
             make.leading.equalToSuperview().offset(162)
-            make.width.equalTo(142)
+            make.trailing.equalTo(priceLabel.snp.leading).offset(-8)
             make.height.equalTo(31)
             make.centerY.equalToSuperview()
         }
@@ -144,6 +144,11 @@ final class MarketTokenCell: UITableViewCell {
         let color = isUptrend ? UIColor.appAccent : UIColor.appRed
 
         let entries = points.enumerated().map { ChartDataEntry(x: Double($0.offset), y: $0.element) }
+
+        // Pin x-axis to exact data range so the last point sits flush at the right edge
+        chartView.xAxis.axisMinimum = 0
+        chartView.xAxis.axisMaximum = Double(entries.count - 1)
+
         let dataSet = LineChartDataSet(entries: entries)
         dataSet.drawCirclesEnabled = false
         dataSet.drawValuesEnabled = false

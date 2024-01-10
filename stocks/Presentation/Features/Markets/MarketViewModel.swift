@@ -67,26 +67,32 @@ final class MarketViewModel {
 
     // MARK: - Private
 
-    // Fetch tickers + klines for each symbol concurrently
+    // Fetch tickers + klines for each symbol concurrently.
+    // Individual symbol failures are swallowed so one delisted pair doesn't break the whole screen.
     private func fetchTokens(symbols: [String]) async throws -> [MarketToken] {
-        try await withThrowingTaskGroup(of: MarketToken?.self) { group in
+        await withTaskGroup(of: MarketToken?.self) { group in
             for symbol in symbols {
                 group.addTask { [weak self] in
                     guard let self else { return nil }
-                    async let ticker = rest.fetchTicker(symbol: symbol)
-                    async let klines = rest.fetchKlines(symbol: symbol, interval: .oneHour, limit: 20)
-                    let (t, k) = try await (ticker, klines)
-                    let points = k.compactMap { Double($0.close) }
-                    return MarketToken.from(
-                        symbol: symbol,
-                        price: t.lastPrice,
-                        changePercent: t.priceChangePercent,
-                        klines: points
-                    )
+                    do {
+                        async let ticker = rest.fetchTicker(symbol: symbol)
+                        async let klines = rest.fetchKlines(symbol: symbol, interval: .oneHour, limit: 20)
+                        let (t, k) = try await (ticker, klines)
+                        let points = k.compactMap { Double($0.close) }
+                        return MarketToken.from(
+                            symbol: symbol,
+                            price: t.lastPrice,
+                            changePercent: t.priceChangePercent,
+                            klines: points
+                        )
+                    } catch {
+                        print("⚠️ fetchTokens: \(symbol) failed — \(error)")
+                        return nil
+                    }
                 }
             }
             var result: [MarketToken?] = []
-            for try await token in group { result.append(token) }
+            for await token in group { result.append(token) }
             // Preserve favorites order
             return symbols.compactMap { sym in result.first(where: { $0?.symbol == sym }) ?? nil }
         }
