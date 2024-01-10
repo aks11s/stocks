@@ -18,12 +18,12 @@ extension MarketToken {
 
     // Maps Binance symbol → display name + logo asset
     static let metadata: [String: (name: String, base: String, logo: String)] = [
-        "BTCUSDT":  ("Bitcoin",      "BTC",  "logo_btc"),
-        "SOLUSDT":  ("Solana",       "SOL",  "logo_sol"),
-        "ADAUSDT":  ("Cardano",      "ADA",  "logo_ada"),
-        "SHIBUSDT": ("SHIBA INU",    "SHIB", "logo_shib"),
-        "MFTUSDT":  ("Hifi Finance", "MFT",  "logo_mft"),
-        "RENUSDT":  ("Ren",          "REN",  "logo_ren"),
+        "BTCUSDT":  ("Bitcoin",  "BTC",  "logo_btc"),
+        "ETHUSDT":  ("Ethereum", "ETH",  "logo_eth"),
+        "SOLUSDT":  ("Solana",   "SOL",  "logo_sol"),
+        "ADAUSDT":  ("Cardano",  "ADA",  "logo_ada"),
+        "SHIBUSDT": ("SHIBA INU","SHIB", "logo_shib"),
+        "TONUSDT":  ("Toncoin",  "TON",  "logo_ton"),
     ]
 
     var pair: String { "\(baseAsset)/USDT" }

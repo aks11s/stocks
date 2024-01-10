@@ -1,11 +1,11 @@
 {
   "images" : [
     {
+      "filename" : "logo_eth.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "logo_ren.png",
       "idiom" : "universal",
       "scale" : "2x"
     },

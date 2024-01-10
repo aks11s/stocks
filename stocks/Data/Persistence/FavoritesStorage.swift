@@ -14,12 +14,12 @@ final class FavoritesStorage {
     private let defaults = UserDefaults.standard
 
     private enum Key {
-        static let symbols = "favorites.symbols"
+        static let symbols = "favorites.symbols.v2"
     }
 
     private static let defaults_symbols = [
         "BTCUSDT", "ETHUSDT", "SOLUSDT",
-        "BNBUSDT", "ADAUSDT", "SHIBUSDT"
+        "ADAUSDT", "SHIBUSDT", "TONUSDT"
     ]
 
     var symbols: [String] {
