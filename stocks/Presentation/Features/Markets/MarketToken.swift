@@ -28,16 +28,19 @@ extension MarketToken {
 
     var pair: String { "\(baseAsset)/USDT" }
 
-    // Build a token from a REST ticker + sparkline points
+    // Build a token from a REST ticker + sparkline points.
+    // Falls back to logo_all for symbols not in the known metadata list.
     static func from(symbol: String, price: String, changePercent: String, klines: [Double]) -> MarketToken? {
-        guard let meta = metadata[symbol] else { return nil }
+        let base = metadata[symbol]?.base ?? symbol.replacingOccurrences(of: "USDT", with: "")
+        let name = metadata[symbol]?.name ?? base
+        let logo = metadata[symbol]?.logo ?? "logo_all"
         let pct = Double(changePercent) ?? 0
         let formatted = String(format: pct >= 0 ? "+%.2f%%" : "%.2f%%", pct)
         return MarketToken(
             symbol: symbol,
-            baseAsset: meta.base,
-            name: meta.name,
-            logoName: meta.logo,
+            baseAsset: base,
+            name: name,
+            logoName: logo,
             price: formatPrice(price),
             change: formatted,
             isUptrend: pct >= 0,
