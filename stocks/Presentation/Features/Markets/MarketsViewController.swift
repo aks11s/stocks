@@ -94,6 +94,7 @@ final class MarketsViewController: UIViewController {
         b.titleLabel?.font = AppFonts.regular(18)
         b.setImage(UIImage(systemName: "plus.circle.fill"), for: .normal)
         b.tintColor = .appTextSecondary
+        b.addTarget(self, action: #selector(addFavoriteTapped), for: .touchUpInside)
         return b
     }()
 
@@ -114,6 +115,18 @@ final class MarketsViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        // tableFooterView needs an explicit frame — Auto Layout doesn't apply inside it
+        if let footer = tableView.tableFooterView {
+            let width = tableView.bounds.width
+            let buttonHeight: CGFloat = 60
+            let padding: CGFloat = 16
+            let totalHeight = buttonHeight + padding * 2
+            addFavoriteButton.frame = CGRect(x: 0, y: padding, width: width, height: buttonHeight)
+            if footer.frame.height != totalHeight {
+                footer.frame = CGRect(x: 0, y: 0, width: width, height: totalHeight)
+                tableView.tableFooterView = footer
+            }
+        }
         if let dash = addFavoriteButton.layer.value(forKey: "dashLayer") as? CAShapeLayer {
             dash.path = UIBezierPath(roundedRect: addFavoriteButton.bounds, cornerRadius: 12).cgPath
         }
@@ -132,7 +145,11 @@ final class MarketsViewController: UIViewController {
         view.addSubview(tableView)
         view.addSubview(loadingIndicator)
         view.addSubview(errorLabel)
-        view.addSubview(addFavoriteButton)
+
+        // Button lives inside the table footer so it scrolls with the list
+        let footer = UIView()
+        footer.addSubview(addFavoriteButton)
+        tableView.tableFooterView = footer
     }
 
     private func setupLayout() {
@@ -172,7 +189,7 @@ final class MarketsViewController: UIViewController {
         tableView.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview().inset(24)
             make.top.equalTo(headerView.snp.bottom).offset(20)
-            make.bottom.equalTo(addFavoriteButton.snp.top).offset(-12)
+            make.bottom.equalTo(view.safeAreaLayoutGuide)
         }
 
         loadingIndicator.snp.makeConstraints { make in
@@ -182,12 +199,6 @@ final class MarketsViewController: UIViewController {
         errorLabel.snp.makeConstraints { make in
             make.center.equalTo(tableView)
             make.leading.trailing.equalToSuperview().inset(32)
-        }
-
-        addFavoriteButton.snp.makeConstraints { make in
-            make.leading.trailing.equalToSuperview().inset(24)
-            make.height.equalTo(60)
-            make.bottom.equalTo(view.safeAreaLayoutGuide).inset(100)
         }
     }
 
@@ -221,12 +232,37 @@ final class MarketsViewController: UIViewController {
         viewModel.reload()
     }
 
+    @objc private func addFavoriteTapped() {
+        let vc = AddFavoriteViewController()
+        // reload when closed via the X button
+        vc.onDismiss = { [weak self] in
+            self?.viewModel.reload()
+        }
+        if let sheet = vc.sheetPresentationController {
+            sheet.detents = [.large()]
+            sheet.prefersGrabberVisible = true
+            sheet.preferredCornerRadius = 24
+        }
+        // reload when dismissed by swipe-down gesture
+        vc.presentationController?.delegate = self
+        present(vc, animated: true)
+    }
+
     private func makeHeaderIcon(_ name: String) -> UIButton {
         let b = UIButton(type: .system)
         let img = UIImage(named: name)?.withRenderingMode(.alwaysTemplate)
         b.setImage(img, for: .normal)
         b.tintColor = .white
         return b
+    }
+}
+
+// MARK: - UIAdaptivePresentationControllerDelegate
+
+extension MarketsViewController: UIAdaptivePresentationControllerDelegate {
+
+    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        viewModel.reload()
     }
 }
 
