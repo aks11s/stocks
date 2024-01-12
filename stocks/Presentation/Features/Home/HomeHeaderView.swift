@@ -7,7 +7,7 @@ final class HomeHeaderView: UIView {
 
     private lazy var avatarView: UIView = {
         let v = UIView()
-        v.backgroundColor = UIColor.appAccent.withAlphaComponent(0.3)
+        v.backgroundColor = .appAccent
         v.layer.cornerRadius = 18
         v.clipsToBounds = true
         return v
@@ -15,17 +15,15 @@ final class HomeHeaderView: UIView {
 
     private lazy var avatarLabel: UILabel = {
         let l = UILabel()
-        l.text = "A"
         l.font = AppFonts.bold(14)
-        l.textColor = .appAccent
+        l.textColor = .appBackground
         l.textAlignment = .center
+        l.text = ProfileStorage.shared.username?.first.map { String($0).uppercased() } ?? "U"
         return l
     }()
 
-    // Called when the user taps the avatar — owner handles navigation
     var onAvatarTap: (() -> Void)?
 
-    // Icons from Figma: search(x=252), scan(x=304), notif(x=356)
     private lazy var searchButton = makeIconButton(named: "icon_search")
     private lazy var scanButton   = makeIconButton(named: "icon_scan")
     private lazy var notifButton  = makeIconButton(named: "icon_notif")
@@ -36,6 +34,7 @@ final class HomeHeaderView: UIView {
         super.init(frame: frame)
         setupViews()
         setupLayout()
+        setupShadow()
     }
 
     required init?(coder: NSCoder) { fatalError() }
@@ -53,35 +52,42 @@ final class HomeHeaderView: UIView {
     }
 
     private func setupLayout() {
-        // Icons are at y=37 from the top of screen in Figma (on iPhone 11 with 44pt status bar).
-        // We pin relative to safeAreaLayoutGuide so they sit correctly on any device.
         avatarView.snp.makeConstraints { make in
-            make.width.height.equalTo(36)
             make.leading.equalToSuperview().inset(24)
-            make.top.equalTo(safeAreaLayoutGuide).offset(5)
+            make.top.equalTo(safeAreaLayoutGuide).offset(8)
+            make.width.height.equalTo(36)
         }
 
         avatarLabel.snp.makeConstraints { make in
             make.center.equalToSuperview()
         }
 
-        searchButton.snp.makeConstraints { make in
+        // Figma: notif trailing=14pt, icons 44×44, 8pt gap between each
+        notifButton.snp.makeConstraints { make in
+            make.trailing.equalToSuperview().inset(14)
+            make.centerY.equalTo(avatarView)
             make.width.height.equalTo(44)
-            make.leading.equalToSuperview().offset(252)
-            make.top.equalTo(safeAreaLayoutGuide)
         }
 
         scanButton.snp.makeConstraints { make in
+            make.trailing.equalTo(notifButton.snp.leading).offset(-8)
+            make.centerY.equalTo(avatarView)
             make.width.height.equalTo(44)
-            make.leading.equalToSuperview().offset(304)
-            make.top.equalTo(safeAreaLayoutGuide)
         }
 
-        notifButton.snp.makeConstraints { make in
+        searchButton.snp.makeConstraints { make in
+            make.trailing.equalTo(scanButton.snp.leading).offset(-8)
+            make.centerY.equalTo(avatarView)
             make.width.height.equalTo(44)
-            make.leading.equalToSuperview().offset(356)
-            make.top.equalTo(safeAreaLayoutGuide)
         }
+    }
+
+    private func setupShadow() {
+        // Figma: 0px 12px 16px rgba(22, 28, 34, 0.5)
+        layer.shadowColor = UIColor(red: 22/255, green: 28/255, blue: 34/255, alpha: 1).cgColor
+        layer.shadowOffset = CGSize(width: 0, height: 12)
+        layer.shadowRadius = 16
+        layer.shadowOpacity = 0.5
     }
 
     // MARK: - Actions
@@ -90,18 +96,11 @@ final class HomeHeaderView: UIView {
         onAvatarTap?()
     }
 
-    private func makeIconButton(named name: String) -> UIView {
-        let v = UIView()
-
-        let iv = UIImageView(image: UIImage(named: name))
-        iv.contentMode = .scaleAspectFit
-        v.addSubview(iv)
-
-        // Icons are 22×22 clean SVGs — render at native size inside 44×44 tap area
-        iv.snp.makeConstraints { make in
-            make.width.height.equalTo(22)
-            make.center.equalToSuperview()
-        }
-        return v
+    private func makeIconButton(named name: String) -> UIButton {
+        let b = UIButton(type: .system)
+        let img = UIImage(named: name)?.withRenderingMode(.alwaysTemplate)
+        b.setImage(img, for: .normal)
+        b.tintColor = .white
+        return b
     }
 }
