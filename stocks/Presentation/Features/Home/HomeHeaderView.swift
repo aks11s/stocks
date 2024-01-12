@@ -100,7 +100,7 @@ final class HomeHeaderView: UIView {
         let b = UIButton(type: .system)
         let img = UIImage(named: name)?.withRenderingMode(.alwaysTemplate)
         b.setImage(img, for: .normal)
-        b.tintColor = .white
+        b.tintColor = .appAccent
         return b
     }
 }

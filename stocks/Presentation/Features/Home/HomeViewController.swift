@@ -46,7 +46,7 @@ final class HomeViewController: UIViewController {
         let v = FeatureCardView()
         v.configure(title: "P2P Trading",
                     subtitle: "Bank Transfer, Paypal Revolut...",
-                    icon: UIImage(named: "card_rocket"))
+                    icon: UIImage(named: "icon_p2p_rocket"))
         return v
     }()
 
@@ -54,7 +54,7 @@ final class HomeViewController: UIViewController {
         let v = FeatureCardView()
         v.configure(title: "Credit/Debit Card",
                     subtitle: "Visa, Mastercard",
-                    icon: UIImage(named: "card_credit"))
+                    icon: UIImage(named: "icon_credit_card"))
         return v
     }()
 
