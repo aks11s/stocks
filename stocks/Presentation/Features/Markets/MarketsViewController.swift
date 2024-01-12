@@ -7,36 +7,7 @@ final class MarketsViewController: UIViewController {
 
     // MARK: - Header
 
-    private lazy var headerView: UIView = {
-        let v = UIView()
-        v.backgroundColor = .appBackground
-        v.layer.shadowColor = UIColor(red: 22/255, green: 28/255, blue: 34/255, alpha: 0.5).cgColor
-        v.layer.shadowOffset = CGSize(width: 0, height: 12)
-        v.layer.shadowRadius = 16
-        v.layer.shadowOpacity = 1
-        return v
-    }()
-
-    private lazy var avatarView: UIView = {
-        let v = UIView()
-        v.backgroundColor = .appAccent
-        v.layer.cornerRadius = 18
-        v.clipsToBounds = true
-        return v
-    }()
-
-    private lazy var avatarLabel: UILabel = {
-        let l = UILabel()
-        l.font = AppFonts.bold(14)
-        l.textColor = .appBackground
-        l.textAlignment = .center
-        l.text = ProfileStorage.shared.username?.first.map { String($0).uppercased() } ?? "U"
-        return l
-    }()
-
-    private lazy var searchButton: UIButton = makeHeaderIcon("icon_search")
-    private lazy var scanButton: UIButton   = makeHeaderIcon("icon_scan")
-    private lazy var notifButton: UIButton  = makeHeaderIcon("icon_notif")
+    private lazy var headerView = HomeHeaderView()
 
     // MARK: - Content
 
@@ -136,12 +107,6 @@ final class MarketsViewController: UIViewController {
 
     private func setupViews() {
         view.addSubview(headerView)
-        headerView.addSubview(avatarView)
-        avatarView.addSubview(avatarLabel)
-        headerView.addSubview(searchButton)
-        headerView.addSubview(scanButton)
-        headerView.addSubview(notifButton)
-
         view.addSubview(tableView)
         view.addSubview(loadingIndicator)
         view.addSubview(errorLabel)
@@ -156,34 +121,6 @@ final class MarketsViewController: UIViewController {
         headerView.snp.makeConstraints { make in
             make.top.leading.trailing.equalToSuperview()
             make.bottom.equalTo(view.safeAreaLayoutGuide.snp.top).offset(51)
-        }
-
-        avatarView.snp.makeConstraints { make in
-            make.leading.equalToSuperview().inset(24)
-            make.top.equalTo(view.safeAreaLayoutGuide).offset(8)
-            make.width.height.equalTo(36)
-        }
-
-        avatarLabel.snp.makeConstraints { make in
-            make.center.equalToSuperview()
-        }
-
-        notifButton.snp.makeConstraints { make in
-            make.trailing.equalToSuperview().inset(14)
-            make.centerY.equalTo(avatarView)
-            make.width.height.equalTo(44)
-        }
-
-        scanButton.snp.makeConstraints { make in
-            make.trailing.equalTo(notifButton.snp.leading)
-            make.centerY.equalTo(avatarView)
-            make.width.height.equalTo(44)
-        }
-
-        searchButton.snp.makeConstraints { make in
-            make.trailing.equalTo(scanButton.snp.leading)
-            make.centerY.equalTo(avatarView)
-            make.width.height.equalTo(44)
         }
 
         tableView.snp.makeConstraints { make in
@@ -248,13 +185,6 @@ final class MarketsViewController: UIViewController {
         present(vc, animated: true)
     }
 
-    private func makeHeaderIcon(_ name: String) -> UIButton {
-        let b = UIButton(type: .system)
-        let img = UIImage(named: name)?.withRenderingMode(.alwaysTemplate)
-        b.setImage(img, for: .normal)
-        b.tintColor = .white
-        return b
-    }
 }
 
 // MARK: - UIAdaptivePresentationControllerDelegate
