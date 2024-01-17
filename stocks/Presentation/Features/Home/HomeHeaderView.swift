@@ -23,6 +23,8 @@ final class HomeHeaderView: UIView {
     }()
 
     var onAvatarTap: (() -> Void)?
+    var onScanTap: (() -> Void)?
+    var onNotifTap: (() -> Void)?
 
     private lazy var searchButton = makeIconButton(named: "icon_search")
     private lazy var scanButton   = makeIconButton(named: "icon_scan")
@@ -49,6 +51,9 @@ final class HomeHeaderView: UIView {
         let tap = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
         avatarView.addGestureRecognizer(tap)
         avatarView.isUserInteractionEnabled = true
+
+        scanButton.addTarget(self, action: #selector(scanTapped), for: .touchUpInside)
+        notifButton.addTarget(self, action: #selector(notifTapped), for: .touchUpInside)
     }
 
     private func setupLayout() {
@@ -92,9 +97,9 @@ final class HomeHeaderView: UIView {
 
     // MARK: - Actions
 
-    @objc private func avatarTapped() {
-        onAvatarTap?()
-    }
+    @objc private func avatarTapped() { onAvatarTap?() }
+    @objc private func scanTapped()   { onScanTap?() }
+    @objc private func notifTapped()  { onNotifTap?() }
 
     private func makeIconButton(named name: String) -> UIButton {
         let b = UIButton(type: .system)
