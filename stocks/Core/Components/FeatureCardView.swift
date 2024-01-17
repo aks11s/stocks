@@ -52,6 +52,8 @@ final class FeatureCardView: UIView {
         return iv
     }()
 
+    var onTap: (() -> Void)?
+
     // MARK: - Init
 
     override init(frame: CGRect) {
@@ -79,6 +81,9 @@ final class FeatureCardView: UIView {
         iconBox.addSubview(iconImageView)
 
         [iconBox, titleLabel, subtitleLabel, arrowImageView].forEach { addSubview($0) }
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        addGestureRecognizer(tap)
     }
 
     private func setupLayout() {
@@ -117,6 +122,10 @@ final class FeatureCardView: UIView {
     }
 
     // MARK: - Configure
+
+    @objc private func handleTap() {
+        onTap?()
+    }
 
     func configure(title: String, subtitle: String, icon: UIImage?) {
         titleLabel.attributedText = NSAttributedString(string: title, attributes: [

@@ -81,6 +81,12 @@ final class HomeViewController: UIViewController {
             self?.present(profile, animated: true)
         }
 
+        headerView.onScanTap  = { [weak self] in self?.openDev() }
+        headerView.onNotifTap = { [weak self] in self?.openDev() }
+
+        p2pCard.onTap    = { [weak self] in self?.openDev() }
+        creditCard.onTap = { [weak self] in self?.openDev() }
+
         [headerView, quickActionsView].forEach { view.addSubview($0) }
 
         view.addSubview(scrollView)
@@ -156,6 +162,12 @@ final class HomeViewController: UIViewController {
             make.height.equalTo(118)
             make.bottom.equalToSuperview().inset(24)
         }
+    }
+
+    // MARK: - Navigation
+
+    private func openDev() {
+        navigationController?.pushViewController(UnderDevelopmentViewController(), animated: true)
     }
 
     // MARK: - Helpers
