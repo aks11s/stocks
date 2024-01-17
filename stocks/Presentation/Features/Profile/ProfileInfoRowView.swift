@@ -36,7 +36,7 @@ final class ProfileInfoRowView: UIView {
     }()
 
     private lazy var arrowView: UIImageView = {
-        let iv = UIImageView(image: UIImage(named: "icon_arrow_right")?.withRenderingMode(.alwaysTemplate))
+        let iv = UIImageView(image: UIImage(named: "icon_chevron_right")?.withRenderingMode(.alwaysTemplate))
         iv.tintColor = .white
         iv.contentMode = .scaleAspectFit
         return iv

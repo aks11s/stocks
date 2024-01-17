@@ -106,6 +106,14 @@ final class MarketsViewController: UIViewController {
     // MARK: - Setup
 
     private func setupViews() {
+        headerView.onAvatarTap = { [weak self] in
+            let profile = ProfileViewController()
+            profile.modalPresentationStyle = .fullScreen
+            self?.present(profile, animated: true)
+        }
+        headerView.onScanTap  = { [weak self] in self?.openDev() }
+        headerView.onNotifTap = { [weak self] in self?.openDev() }
+
         view.addSubview(headerView)
         view.addSubview(tableView)
         view.addSubview(loadingIndicator)
@@ -183,6 +191,10 @@ final class MarketsViewController: UIViewController {
         // reload when dismissed by swipe-down gesture
         vc.presentationController?.delegate = self
         present(vc, animated: true)
+    }
+
+    private func openDev() {
+        navigationController?.pushViewController(UnderDevelopmentViewController(), animated: true)
     }
 
 }

@@ -7,8 +7,7 @@ final class UnderDevelopmentViewController: UIViewController {
 
     private lazy var backButton: UIButton = {
         let b = UIButton(type: .system)
-        let img = UIImage(named: "icon_arrow_left")?.withRenderingMode(.alwaysTemplate)
-        b.setImage(img, for: .normal)
+        b.setImage(UIImage(named: "icon_chevron_left")?.withRenderingMode(.alwaysTemplate), for: .normal)
         b.tintColor = .appAccent
         b.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
         return b
