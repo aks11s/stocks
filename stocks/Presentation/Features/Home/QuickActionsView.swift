@@ -3,6 +3,8 @@ import SnapKit
 
 final class QuickActionsView: UIView {
 
+    var onTap: ((String) -> Void)?
+
     struct Item {
         let title: String
         let imageName: String
@@ -66,6 +68,11 @@ final class QuickActionsView: UIView {
 
     private func makeItemView(_ item: Item) -> UIView {
         let container = UIView()
+        container.accessibilityLabel = item.title
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(itemTapped(_:)))
+        container.addGestureRecognizer(tap)
+        container.isUserInteractionEnabled = true
 
         let icon = UIImageView(image: UIImage(named: item.imageName))
         icon.contentMode = .scaleAspectFit
@@ -91,6 +98,11 @@ final class QuickActionsView: UIView {
         }
 
         return container
+    }
+
+    @objc private func itemTapped(_ gesture: UITapGestureRecognizer) {
+        guard let title = gesture.view?.accessibilityLabel else { return }
+        onTap?(title)
     }
 
     private func addSeparators() {

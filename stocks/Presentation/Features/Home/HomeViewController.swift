@@ -87,6 +87,8 @@ final class HomeViewController: UIViewController {
         p2pCard.onTap    = { [weak self] in self?.openDev() }
         creditCard.onTap = { [weak self] in self?.openDev() }
 
+        quickActionsView.onTap = { [weak self] _ in self?.openDev() }
+
         [headerView, quickActionsView].forEach { view.addSubview($0) }
 
         view.addSubview(scrollView)
