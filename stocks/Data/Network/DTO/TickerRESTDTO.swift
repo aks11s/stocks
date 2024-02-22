@@ -1,6 +1,5 @@
 import Foundation
 
-// Initial snapshot for the Markets screen — REST call on first open, then WS miniTicker takes over
 struct TickerRESTDTO: Decodable {
     let symbol: String
     let lastPrice: String
@@ -10,4 +9,32 @@ struct TickerRESTDTO: Decodable {
     let lowPrice: String
     let volume: String
     let quoteVolume: String
+
+    private enum CodingKeys: String, CodingKey {
+        case instId    = "instId"
+        case last      = "last"
+        case open24h   = "open24h"
+        case high24h   = "high24h"
+        case low24h    = "low24h"
+        case vol24h    = "vol24h"
+        case volCcy24h = "volCcy24h"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        symbol      = try c.decode(String.self, forKey: .instId)
+        lastPrice   = try c.decode(String.self, forKey: .last)
+        highPrice   = try c.decode(String.self, forKey: .high24h)
+        lowPrice    = try c.decode(String.self, forKey: .low24h)
+        volume      = try c.decode(String.self, forKey: .vol24h)
+        quoteVolume = try c.decode(String.self, forKey: .volCcy24h)
+
+        let open       = try c.decode(String.self, forKey: .open24h)
+        let lastVal    = Double(lastPrice) ?? 0
+        let openVal    = Double(open) ?? 0
+        let change     = lastVal - openVal
+        let changePct  = openVal != 0 ? (change / openVal * 100) : 0
+        priceChange        = String(format: "%.8f", change)
+        priceChangePercent = String(format: "%.4f", changePct)
+    }
 }
