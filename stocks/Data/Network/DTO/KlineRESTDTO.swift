@@ -1,7 +1,6 @@
 import Foundation
 
-// Pre-loads chart history so the user sees a full chart immediately, before the WS stream takes over
-// Binance sends each candle as a plain array of mixed types, so we need a custom decoder instead of CodingKeys
+// OKX candles arrive as string arrays: [ts, open, high, low, close, vol, volCcy, volCcyQuote, confirm]
 struct KlineRESTDTO: Decodable {
     let openTime: Int64
     let open: String
@@ -9,17 +8,16 @@ struct KlineRESTDTO: Decodable {
     let low: String
     let close: String
     let volume: String
-    let closeTime: Int64
 
     init(from decoder: Decoder) throws {
         var c = try decoder.unkeyedContainer()
-        openTime  = try c.decode(Int64.self)
-        open      = try c.decode(String.self)
-        high      = try c.decode(String.self)
-        low       = try c.decode(String.self)
-        close     = try c.decode(String.self)
-        volume    = try c.decode(String.self)
-        closeTime = try c.decode(Int64.self)
-        // fields 8–11 (quoteVolume, tradeCount, etc.) are unused — skip
+        let tsString = try c.decode(String.self)
+        openTime = Int64(tsString) ?? 0
+        open     = try c.decode(String.self)
+        high     = try c.decode(String.self)
+        low      = try c.decode(String.self)
+        close    = try c.decode(String.self)
+        volume   = try c.decode(String.self)
+        // volCcy, volCcyQuote, confirm — unused
     }
 }
