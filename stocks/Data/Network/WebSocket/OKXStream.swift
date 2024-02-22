@@ -6,8 +6,7 @@ enum DepthLevel: String {
     case twenty = "20"
 }
 
-// Stream channel names match MEXC subscription format
-enum BinanceStream {
+enum OKXStream {
     case allMiniTickers
     case ticker(symbol: String)
     case kline(symbol: String, interval: KlineInterval)
@@ -15,7 +14,6 @@ enum BinanceStream {
     case aggTrade(symbol: String)
     case bookTicker(symbol: String)
 
-    // MEXC subscription channel name
     var name: String {
         switch self {
         case .allMiniTickers:
@@ -34,16 +32,13 @@ enum BinanceStream {
     }
 }
 
-extension BinanceStream {
-    // MEXC uses a single WS endpoint — channels are selected via SUBSCRIPTION messages after connect
+extension OKXStream {
     static let wsURL = URL(string: "wss://wbs-api.mexc.com/ws")!
 
-    // JSON subscription message for a set of streams
-    static func subscriptionMessage(for streams: [BinanceStream]) -> String {
+    static func subscriptionMessage(for streams: [OKXStream]) -> String {
         let params = streams.map { "\"\($0.name)\"" }.joined(separator: ",")
         return "{\"method\":\"SUBSCRIPTION\",\"params\":[\(params)]}"
     }
 
-    // Legacy helper — kept so call sites compile unchanged
-    static func combinedURL(for streams: [BinanceStream]) -> URL { wsURL }
+    static func combinedURL(for streams: [OKXStream]) -> URL { wsURL }
 }

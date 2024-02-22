@@ -19,16 +19,16 @@ final class MarketViewModel {
 
     // MARK: - Dependencies
 
-    private let rest: BinanceRESTServiceProtocol
-    private let ws:   BinanceWebSocketServiceProtocol
+    private let rest: OKXRESTServiceProtocol
+    private let ws:   OKXWebSocketServiceProtocol
     private let favorites = FavoritesStorage.shared
 
     private var tokens: [MarketToken] = []
     private var wsTask: Task<Void, Never>?
 
     init(
-        rest: BinanceRESTServiceProtocol = BinanceRESTService(),
-        ws:   BinanceWebSocketServiceProtocol = BinanceWebSocketService()
+        rest: OKXRESTServiceProtocol = OKXRESTService(),
+        ws:   OKXWebSocketServiceProtocol = OKXWebSocketService()
     ) {
         self.rest = rest
         self.ws   = ws
@@ -99,7 +99,7 @@ final class MarketViewModel {
     }
 
     private func startLiveUpdates() {
-        let streams: [BinanceStream] = [.allMiniTickers]
+        let streams: [OKXStream] = [.allMiniTickers]
         ws.connect(streams: streams)
 
         wsTask = Task { [weak self] in

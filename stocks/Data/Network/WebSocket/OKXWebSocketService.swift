@@ -1,7 +1,7 @@
 import Foundation
 
-protocol BinanceWebSocketServiceProtocol {
-    func connect(streams: [BinanceStream])
+protocol OKXWebSocketServiceProtocol {
+    func connect(streams: [OKXStream])
     func disconnect()
     func miniTickerStream() -> AsyncStream<[MiniTickerDTO]>
     func tickerStream(symbol: String) -> AsyncStream<TickerDTO>
@@ -11,11 +11,11 @@ protocol BinanceWebSocketServiceProtocol {
     func bookTickerStream(symbol: String) -> AsyncStream<BookTickerDTO>
 }
 
-final class BinanceWebSocketService: BinanceWebSocketServiceProtocol {
+final class OKXWebSocketService: OKXWebSocketServiceProtocol {
     private let socket: WebSocketServiceProtocol
     private let decoder = JSONDecoder()
 
-    private var pendingStreams: [BinanceStream] = []
+    private var pendingStreams: [OKXStream] = []
 
     private var miniTickerContinuation: AsyncStream<[MiniTickerDTO]>.Continuation?
     private var tickerContinuations:     [String: AsyncStream<TickerDTO>.Continuation]     = [:]
@@ -27,17 +27,16 @@ final class BinanceWebSocketService: BinanceWebSocketServiceProtocol {
     init(socket: WebSocketServiceProtocol = WebSocketService()) {
         self.socket = socket
         self.socket.onData = { [weak self] data in self?.route(data) }
-        // Send SUBSCRIPTION message once the connection is established
         self.socket.onConnect = { [weak self] in
             guard let self else { return }
-            let msg = BinanceStream.subscriptionMessage(for: self.pendingStreams)
+            let msg = OKXStream.subscriptionMessage(for: self.pendingStreams)
             self.socket.send(msg)
         }
     }
 
-    func connect(streams: [BinanceStream]) {
+    func connect(streams: [OKXStream]) {
         pendingStreams = streams
-        socket.connect(url: BinanceStream.wsURL)
+        socket.connect(url: OKXStream.wsURL)
     }
 
     func disconnect() {
@@ -61,7 +60,7 @@ final class BinanceWebSocketService: BinanceWebSocketServiceProtocol {
     }
 
     func klineStream(symbol: String, interval: KlineInterval) -> AsyncStream<KlineDTO> {
-        let key = BinanceStream.kline(symbol: symbol, interval: interval).name
+        let key = OKXStream.kline(symbol: symbol, interval: interval).name
         return AsyncStream { [weak self] in self?.klineContinuations[key] = $0 }
     }
 
@@ -79,7 +78,6 @@ final class BinanceWebSocketService: BinanceWebSocketServiceProtocol {
 
     // MARK: - Message routing
 
-    // MEXC envelope: {"c":"<channel>","d":{...},"t":<timestamp>}
     private func route(_ data: Data) {
         guard
             let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -89,7 +87,6 @@ final class BinanceWebSocketService: BinanceWebSocketServiceProtocol {
         else { return }
 
         if channel == "spot@public.miniTickers.v3.api" {
-            // MEXC wraps the array in a "data" key inside "d"
             if let wrapper = json["d"] as? [String: Any],
                let arr = wrapper["data"],
                let arrData = try? JSONSerialization.data(withJSONObject: arr),
