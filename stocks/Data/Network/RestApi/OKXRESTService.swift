@@ -1,11 +1,8 @@
 import Foundation
 
 protocol OKXRESTServiceProtocol {
-    /// All 24h tickers — called once on Markets screen load
     func fetchAllTickers() async throws -> [TickerRESTDTO]
-    /// Single symbol ticker — called when opening Detail screen
     func fetchTicker(symbol: String) async throws -> TickerRESTDTO
-    /// Historical candles — loaded before WS stream takes over the chart
     func fetchKlines(symbol: String, interval: KlineInterval, limit: Int) async throws -> [KlineRESTDTO]
 }
 
@@ -17,14 +14,16 @@ final class OKXRESTService: OKXRESTServiceProtocol {
     }
 
     func fetchAllTickers() async throws -> [TickerRESTDTO] {
-        try await network.request(.ticker24h())
+        try await network.request(.allTickers)
     }
 
     func fetchTicker(symbol: String) async throws -> TickerRESTDTO {
-        try await network.request(.ticker24h(symbol: symbol))
+        let list: [TickerRESTDTO] = try await network.request(.ticker(instId: symbol))
+        guard let ticker = list.first else { throw URLError(.badServerResponse) }
+        return ticker
     }
 
     func fetchKlines(symbol: String, interval: KlineInterval, limit: Int = 500) async throws -> [KlineRESTDTO] {
-        try await network.request(.klines(symbol: symbol, interval: interval, limit: limit))
+        try await network.request(.candles(instId: symbol, bar: interval, limit: limit))
     }
 }
