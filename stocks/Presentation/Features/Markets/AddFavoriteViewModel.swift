@@ -24,13 +24,13 @@ final class AddFavoriteViewModel {
         didSet { onStateChange?(state) }
     }
 
-    private let rest: BinanceRESTServiceProtocol
+    private let rest: OKXRESTServiceProtocol
     private let favorites = FavoritesStorage.shared
 
     // Full unfiltered list fetched once
     private var allTokens: [SearchToken] = []
 
-    init(rest: BinanceRESTServiceProtocol = BinanceRESTService()) {
+    init(rest: OKXRESTServiceProtocol = OKXRESTService()) {
         self.rest = rest
     }
 

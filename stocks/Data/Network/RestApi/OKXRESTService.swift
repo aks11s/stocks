@@ -1,6 +1,6 @@
 import Foundation
 
-protocol BinanceRESTServiceProtocol {
+protocol OKXRESTServiceProtocol {
     /// All 24h tickers — called once on Markets screen load
     func fetchAllTickers() async throws -> [TickerRESTDTO]
     /// Single symbol ticker — called when opening Detail screen
@@ -9,7 +9,7 @@ protocol BinanceRESTServiceProtocol {
     func fetchKlines(symbol: String, interval: KlineInterval, limit: Int) async throws -> [KlineRESTDTO]
 }
 
-final class BinanceRESTService: BinanceRESTServiceProtocol {
+final class OKXRESTService: OKXRESTServiceProtocol {
     private let network: NetworkServiceProtocol
 
     init(network: NetworkServiceProtocol = NetworkService()) {

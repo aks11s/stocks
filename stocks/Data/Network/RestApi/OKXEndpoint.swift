@@ -1,6 +1,5 @@
 import Foundation
 
-// MEXC interval strings differ from Binance — "60m" instead of "1h", "1W" instead of "1w"
 enum KlineInterval: String, CaseIterable {
     case oneMinute       = "1m"
     case fiveMinutes     = "5m"
@@ -12,16 +11,15 @@ enum KlineInterval: String, CaseIterable {
     case oneWeek         = "1W"
 }
 
-enum BinanceEndpoint {
+enum OKXEndpoint {
     static let baseURL = "https://api.mexc.com"
 
     /// 24h rolling ticker stats; pass nil to fetch all symbols at once
     case ticker24h(symbol: String? = nil)
-    /// Limit defaults to 500 — enough to fill a chart without hitting Binance's 1000-row cap
     case klines(symbol: String, interval: KlineInterval, limit: Int = 500)
 
     var url: URL {
-        URL(string: BinanceEndpoint.baseURL + path)!
+        URL(string: OKXEndpoint.baseURL + path)!
     }
 
     var path: String {
