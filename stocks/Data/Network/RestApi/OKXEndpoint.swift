@@ -5,18 +5,18 @@ enum KlineInterval: String, CaseIterable {
     case fiveMinutes     = "5m"
     case fifteenMinutes  = "15m"
     case thirtyMinutes   = "30m"
-    case oneHour         = "60m"
-    case fourHours       = "4h"
-    case oneDay          = "1d"
+    case oneHour         = "1H"
+    case fourHours       = "4H"
+    case oneDay          = "1D"
     case oneWeek         = "1W"
 }
 
 enum OKXEndpoint {
-    static let baseURL = "https://api.mexc.com"
+    static let baseURL = "https://www.okx.com/api/v5"
 
-    /// 24h rolling ticker stats; pass nil to fetch all symbols at once
-    case ticker24h(symbol: String? = nil)
-    case klines(symbol: String, interval: KlineInterval, limit: Int = 500)
+    case allTickers
+    case ticker(instId: String)
+    case candles(instId: String, bar: KlineInterval, limit: Int = 500)
 
     var url: URL {
         URL(string: OKXEndpoint.baseURL + path)!
@@ -24,18 +24,20 @@ enum OKXEndpoint {
 
     var path: String {
         switch self {
-        case .ticker24h: return "/api/v3/ticker/24hr"
-        case .klines:    return "/api/v3/klines"
+        case .allTickers:  return "/market/tickers"
+        case .ticker:      return "/market/ticker"
+        case .candles:     return "/market/candles"
         }
     }
 
     var parameters: [String: Any]? {
         switch self {
-        case .ticker24h(let symbol):
-            guard let symbol else { return nil }
-            return ["symbol": symbol]
-        case .klines(let symbol, let interval, let limit):
-            return ["symbol": symbol, "interval": interval.rawValue, "limit": limit]
+        case .allTickers:
+            return ["instType": "SPOT"]
+        case .ticker(let instId):
+            return ["instId": instId]
+        case .candles(let instId, let bar, let limit):
+            return ["instId": instId, "bar": bar.rawValue, "limit": limit]
         }
     }
 }
