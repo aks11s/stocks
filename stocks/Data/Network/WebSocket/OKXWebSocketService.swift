@@ -78,40 +78,58 @@ final class OKXWebSocketService: OKXWebSocketServiceProtocol {
 
     // MARK: - Message routing
 
+    // OKX envelope: {"arg":{"channel":"...","instId":"..."},"data":[...]}
     private func route(_ data: Data) {
         guard
-            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let channel = json["c"] as? String,
-            let rawPayload = json["d"],
-            let payload = try? JSONSerialization.data(withJSONObject: rawPayload)
+            let json     = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let arg      = json["arg"] as? [String: String],
+            let channel  = arg["channel"],
+            let instId   = arg["instId"],
+            let rawData  = json["data"] as? [Any],
+            !rawData.isEmpty
         else { return }
 
-        if channel == "spot@public.miniTickers.v3.api" {
-            if let wrapper = json["d"] as? [String: Any],
-               let arr = wrapper["data"],
-               let arrData = try? JSONSerialization.data(withJSONObject: arr),
-               let v = try? decoder.decode([MiniTickerDTO].self, from: arrData) {
-                miniTickerContinuation?.yield(v)
+        let routingKey = "\(channel)|\(instId)"
+
+        if channel == "tickers" {
+            guard
+                let item     = rawData.first,
+                let itemData = try? JSONSerialization.data(withJSONObject: item)
+            else { return }
+            if let mini = try? decoder.decode(MiniTickerDTO.self, from: itemData) {
+                miniTickerContinuation?.yield([mini])
             }
-        } else if channel.contains("kline") {
-            if let v = try? decoder.decode(KlineDTO.self, from: payload) {
-                klineContinuations[channel]?.yield(v)
+            if let ticker = try? decoder.decode(TickerDTO.self, from: itemData) {
+                tickerContinuations[instId.lowercased()]?.yield(ticker)
             }
-        } else if channel.contains("depth") {
-            if let v = try? decoder.decode(DepthDTO.self, from: payload) {
-                let sym = channel.components(separatedBy: "@").dropFirst(3).first ?? ""
-                depthContinuations[sym.lowercased()]?.yield(v)
-            }
-        } else if channel.contains("deals") {
-            if let v = try? decoder.decode(AggTradeDTO.self, from: payload) {
-                let sym = channel.components(separatedBy: "@").dropFirst(3).first ?? ""
-                aggTradeContinuations[sym.lowercased()]?.yield(v)
-            }
-        } else if channel.contains("bookTicker") {
-            if let v = try? decoder.decode(BookTickerDTO.self, from: payload) {
-                let sym = channel.components(separatedBy: "@").dropFirst(3).first ?? ""
-                bookTickerContinuations[sym.lowercased()]?.yield(v)
-            }
+        } else if channel.hasPrefix("candle") {
+            guard
+                let candleArray = rawData.first,
+                let candleData  = try? JSONSerialization.data(withJSONObject: candleArray),
+                let candle      = try? decoder.decode(KlineDTO.Candle.self, from: candleData)
+            else { return }
+            klineContinuations[routingKey]?.yield(KlineDTO(symbol: instId, candle: candle))
+        } else if channel == "books5" {
+            guard
+                let item     = rawData.first,
+                let itemData = try? JSONSerialization.data(withJSONObject: item),
+                let depth    = try? decoder.decode(DepthDTO.self, from: itemData)
+            else { return }
+            depthContinuations[instId.lowercased()]?.yield(depth)
+        } else if channel == "trades" {
+            guard
+                let item     = rawData.first,
+                let itemData = try? JSONSerialization.data(withJSONObject: item),
+                let trade    = try? decoder.decode(AggTradeDTO.self, from: itemData)
+            else { return }
+            aggTradeContinuations[instId.lowercased()]?.yield(trade)
+        } else if channel == "bbo-tbt" {
+            guard
+                let item       = rawData.first,
+                let itemData   = try? JSONSerialization.data(withJSONObject: item),
+                let bookTicker = try? decoder.decode(BookTickerDTO.self, from: itemData)
+            else { return }
+            bookTickerContinuations[instId.lowercased()]?.yield(bookTicker)
         }
     }
 }

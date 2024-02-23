@@ -1,6 +1,5 @@
 import Foundation
 
-// Richer than MiniTicker — includes bid/ask and percentage change, so we use this on the Detail screen instead
 struct TickerDTO: Decodable {
     let symbol: String
     let lastPrice: String
@@ -12,15 +11,33 @@ struct TickerDTO: Decodable {
     let bestBid: String
     let bestAsk: String
 
-    enum CodingKeys: String, CodingKey {
-        case symbol             = "s"
-        case lastPrice          = "c"
-        case priceChange        = "p"
-        case priceChangePercent = "P"
-        case highPrice          = "h"
-        case lowPrice           = "l"
-        case volume             = "v"
-        case bestBid            = "b"
-        case bestAsk            = "a"
+    private enum CodingKeys: String, CodingKey {
+        case instId  = "instId"
+        case last    = "last"
+        case open24h = "open24h"
+        case high24h = "high24h"
+        case low24h  = "low24h"
+        case vol24h  = "vol24h"
+        case bidPx   = "bidPx"
+        case askPx   = "askPx"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        symbol    = try c.decode(String.self, forKey: .instId)
+        lastPrice = try c.decode(String.self, forKey: .last)
+        highPrice = try c.decode(String.self, forKey: .high24h)
+        lowPrice  = try c.decode(String.self, forKey: .low24h)
+        volume    = try c.decode(String.self, forKey: .vol24h)
+        bestBid   = try c.decode(String.self, forKey: .bidPx)
+        bestAsk   = try c.decode(String.self, forKey: .askPx)
+
+        let open      = try c.decode(String.self, forKey: .open24h)
+        let lastVal   = Double(lastPrice) ?? 0
+        let openVal   = Double(open) ?? 0
+        let change    = lastVal - openVal
+        let changePct = openVal != 0 ? (change / openVal * 100) : 0
+        priceChange        = String(format: "%.8f", change)
+        priceChangePercent = String(format: "%.4f", changePct)
     }
 }
