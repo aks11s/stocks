@@ -1,7 +1,7 @@
 import Foundation
 
 struct SearchToken {
-    let symbol: String    // BTCUSDT
+    let symbol: String    // BTC-USDT
     let pair: String      // BTC/USDT
     let logoName: String
     let price: String
@@ -43,7 +43,7 @@ final class AddFavoriteViewModel {
                 let tickers = try await rest.fetchAllTickers()
                 // Keep only USDT pairs and sort by quote volume descending
                 allTokens = tickers
-                    .filter { $0.symbol.hasSuffix("USDT") }
+                    .filter { $0.symbol.hasSuffix("-USDT") }
                     .sorted {
                         (Double($0.quoteVolume) ?? 0) > (Double($1.quoteVolume) ?? 0)
                     }
@@ -83,7 +83,7 @@ final class AddFavoriteViewModel {
     private func makeSearchToken(from ticker: TickerRESTDTO) -> SearchToken {
         let symbol = ticker.symbol
         let meta = MarketToken.metadata[symbol]
-        let base = meta?.base ?? symbol.replacingOccurrences(of: "USDT", with: "")
+        let base = meta?.base ?? symbol.replacingOccurrences(of: "-USDT", with: "")
         let logo = meta?.logo ?? "logo_all"
         let price = formatPrice(ticker.lastPrice)
         return SearchToken(
