@@ -1,7 +1,7 @@
 import Foundation
 
 struct MarketToken {
-    let symbol: String        // BTCUSDT
+    let symbol: String        // BTC-USDT
     let baseAsset: String     // BTC
     let name: String          // Bitcoin
     let logoName: String      // asset catalog name
@@ -16,14 +16,13 @@ struct MarketToken {
 
 extension MarketToken {
 
-    // Maps Binance symbol → display name + logo asset
     static let metadata: [String: (name: String, base: String, logo: String)] = [
-        "BTCUSDT":  ("Bitcoin",  "BTC",  "logo_btc"),
-        "ETHUSDT":  ("Ethereum", "ETH",  "logo_eth"),
-        "SOLUSDT":  ("Solana",   "SOL",  "logo_sol"),
-        "ADAUSDT":  ("Cardano",  "ADA",  "logo_ada"),
-        "SHIBUSDT": ("SHIBA INU","SHIB", "logo_shib"),
-        "TONUSDT":  ("Toncoin",  "TON",  "logo_ton"),
+        "BTC-USDT":  ("Bitcoin",   "BTC",  "logo_btc"),
+        "ETH-USDT":  ("Ethereum",  "ETH",  "logo_eth"),
+        "SOL-USDT":  ("Solana",    "SOL",  "logo_sol"),
+        "ADA-USDT":  ("Cardano",   "ADA",  "logo_ada"),
+        "SHIB-USDT": ("SHIBA INU", "SHIB", "logo_shib"),
+        "TON-USDT":  ("Toncoin",   "TON",  "logo_ton"),
     ]
 
     var pair: String { "\(baseAsset)/USDT" }
@@ -31,7 +30,7 @@ extension MarketToken {
     // Build a token from a REST ticker + sparkline points.
     // Falls back to logo_all for symbols not in the known metadata list.
     static func from(symbol: String, price: String, changePercent: String, klines: [Double]) -> MarketToken? {
-        let base = metadata[symbol]?.base ?? symbol.replacingOccurrences(of: "USDT", with: "")
+        let base = metadata[symbol]?.base ?? symbol.replacingOccurrences(of: "-USDT", with: "")
         let name = metadata[symbol]?.name ?? base
         let logo = metadata[symbol]?.logo ?? "logo_all"
         let pct = Double(changePercent) ?? 0

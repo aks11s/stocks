@@ -99,7 +99,7 @@ final class MarketViewModel {
     }
 
     private func startLiveUpdates() {
-        let streams: [OKXStream] = [.allMiniTickers]
+        let streams = favorites.symbols.map { OKXStream.ticker(symbol: $0) }
         ws.connect(streams: streams)
 
         wsTask = Task { [weak self] in
