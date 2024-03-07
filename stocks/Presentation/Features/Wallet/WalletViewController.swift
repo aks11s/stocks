@@ -42,11 +42,24 @@ final class WalletViewController: UIViewController {
         return stack
     }()
 
+    // MARK: - Holdings table
+
+    private let tableView: UITableView = {
+        let tv = UITableView()
+        tv.backgroundColor = .clear
+        tv.separatorStyle = .none
+        tv.showsVerticalScrollIndicator = false
+        return tv
+    }()
+
+    private var holdings: [HoldingEntry] = []
+
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .appBackground
+        setupTableView()
         setupLayout()
         bindViewModel()
         viewModel.load()
@@ -54,8 +67,13 @@ final class WalletViewController: UIViewController {
 
     // MARK: - Layout
 
+    private func setupTableView() {
+        tableView.register(WalletHoldingCell.self, forCellReuseIdentifier: WalletHoldingCell.reuseID)
+        tableView.dataSource = self
+    }
+
     private func setupLayout() {
-        [balanceTitleLabel, balanceAmountLabel, balanceFiatLabel, tabsStackView].forEach {
+        [balanceTitleLabel, balanceAmountLabel, balanceFiatLabel, tabsStackView, tableView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -77,7 +95,12 @@ final class WalletViewController: UIViewController {
             tabsStackView.topAnchor.constraint(equalTo: balanceFiatLabel.bottomAnchor, constant: Spacing.l),
             tabsStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Spacing.l),
             tabsStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Spacing.l),
-            tabsStackView.heightAnchor.constraint(equalToConstant: 44)
+            tabsStackView.heightAnchor.constraint(equalToConstant: 44),
+
+            tableView.topAnchor.constraint(equalTo: tabsStackView.bottomAnchor, constant: Spacing.m),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
 
@@ -86,14 +109,18 @@ final class WalletViewController: UIViewController {
     private func bindViewModel() {
         viewModel.onStateChange = { [weak self] state in
             guard let self else { return }
-            if case .loaded(let balance, _) = state {
+            if case .loaded(let balance, let holdings) = state {
                 self.balanceAmountLabel.text = String(format: "%.2f", balance)
                 self.balanceFiatLabel.text = String(format: "$%.2f", balance)
+                self.holdings = holdings
+                self.tableView.reloadData()
             }
         }
     }
 
     // MARK: - Helpers
+
+
 
     private func makeTabButton(title: String, isActive: Bool) -> UIButton {
         let button = UIButton(type: .system)
@@ -109,5 +136,20 @@ final class WalletViewController: UIViewController {
             button.setTitleColor(.appTextSecondary, for: .normal)
         }
         return button
+    }
+}
+
+// MARK: - UITableViewDataSource
+
+extension WalletViewController: UITableViewDataSource {
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        holdings.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: WalletHoldingCell.reuseID, for: indexPath) as! WalletHoldingCell
+        cell.configure(with: holdings[indexPath.row])
+        return cell
     }
 }
