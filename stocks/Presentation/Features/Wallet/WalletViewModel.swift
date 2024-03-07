@@ -5,7 +5,7 @@ final class WalletViewModel {
 
     enum State {
         case loading
-        case loaded(balance: Double, holdings: [HoldingEntry])
+        case loaded(balance: Double, holdings: [HoldingEntry], isBalanceHidden: Bool)
     }
 
     var onStateChange: ((State) -> Void)?
@@ -15,13 +15,19 @@ final class WalletViewModel {
     }
 
     private let storage = WalletStorage.shared
+    private(set) var isBalanceHidden = false
 
     func load() {
-        state = .loaded(balance: storage.balance, holdings: storage.holdings)
+        state = .loaded(balance: storage.balance, holdings: storage.holdings, isBalanceHidden: isBalanceHidden)
     }
 
     func deposit(amount: Double) {
         storage.balance += amount
-        state = .loaded(balance: storage.balance, holdings: storage.holdings)
+        state = .loaded(balance: storage.balance, holdings: storage.holdings, isBalanceHidden: isBalanceHidden)
+    }
+
+    func toggleBalanceVisibility() {
+        isBalanceHidden.toggle()
+        state = .loaded(balance: storage.balance, holdings: storage.holdings, isBalanceHidden: isBalanceHidden)
     }
 }
