@@ -19,4 +19,9 @@ final class WalletViewModel {
     func load() {
         state = .loaded(balance: storage.balance, holdings: storage.holdings)
     }
+
+    func deposit(amount: Double) {
+        storage.balance += amount
+        state = .loaded(balance: storage.balance, holdings: storage.holdings)
+    }
 }
