@@ -62,6 +62,7 @@ final class WalletViewController: UIViewController {
         setupTableView()
         setupLayout()
         bindViewModel()
+        depositButton.addTarget(self, action: #selector(depositTapped), for: .touchUpInside)
         viewModel.load()
     }
 
@@ -116,6 +117,20 @@ final class WalletViewController: UIViewController {
                 self.tableView.reloadData()
             }
         }
+    }
+
+    // MARK: - Actions
+
+    @objc private func depositTapped() {
+        let vc = DepositViewController()
+        vc.onDeposit = { [weak self] amount in
+            self?.viewModel.deposit(amount: amount)
+        }
+        if let sheet = vc.sheetPresentationController {
+            sheet.detents = [.medium()]
+            sheet.prefersGrabberVisible = true
+        }
+        present(vc, animated: true)
     }
 
     // MARK: - Helpers
