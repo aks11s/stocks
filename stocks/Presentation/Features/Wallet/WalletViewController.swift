@@ -1,10 +1,15 @@
 import UIKit
+import SnapKit
 
 final class WalletViewController: UIViewController {
 
     private let viewModel = WalletViewModel()
 
-    // MARK: - Header views
+    // MARK: - Header
+
+    private lazy var headerView = HomeHeaderView()
+
+    // MARK: - Balance views
 
     private let balanceTitleLabel: UILabel = {
         let label = UILabel()
@@ -12,13 +17,6 @@ final class WalletViewController: UIViewController {
         label.font = AppFonts.regular(14)
         label.textColor = .appTextSecondary
         return label
-    }()
-
-    private lazy var visibilityButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.tintColor = .appTextSecondary
-        button.setImage(UIImage(named: "unview"), for: .normal)
-        return button
     }()
 
     private let balanceAmountLabel: UILabel = {
@@ -33,6 +31,13 @@ final class WalletViewController: UIViewController {
         label.font = AppFonts.regular(14)
         label.textColor = .appTextSecondary
         return label
+    }()
+
+    private lazy var visibilityButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.tintColor = .appTextSecondary
+        button.setImage(UIImage(named: "unview"), for: .normal)
+        return button
     }()
 
     // MARK: - Action tabs
@@ -66,6 +71,7 @@ final class WalletViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .appBackground
+        setupHeader()
         setupTableView()
         setupLayout()
         bindViewModel()
@@ -74,7 +80,17 @@ final class WalletViewController: UIViewController {
         viewModel.load()
     }
 
-    // MARK: - Layout
+    // MARK: - Setup
+
+    private func setupHeader() {
+        headerView.onAvatarTap = { [weak self] in
+            let profile = ProfileViewController()
+            profile.modalPresentationStyle = .fullScreen
+            self?.present(profile, animated: true)
+        }
+        headerView.onScanTap  = { [weak self] in self?.openDev() }
+        headerView.onNotifTap = { [weak self] in self?.openDev() }
+    }
 
     private func setupTableView() {
         tableView.register(WalletHoldingCell.self, forCellReuseIdentifier: WalletHoldingCell.reuseID)
@@ -82,8 +98,8 @@ final class WalletViewController: UIViewController {
     }
 
     private func setupLayout() {
-        [balanceTitleLabel, visibilityButton, balanceAmountLabel, balanceFiatLabel, tabsStackView, tableView].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
+        [headerView, balanceTitleLabel, visibilityButton,
+         balanceAmountLabel, balanceFiatLabel, tabsStackView, tableView].forEach {
             view.addSubview($0)
         }
 
@@ -91,31 +107,43 @@ final class WalletViewController: UIViewController {
         tabsStackView.addArrangedSubview(withdrawButton)
         tabsStackView.addArrangedSubview(transferButton)
 
-        NSLayoutConstraint.activate([
-            balanceTitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: Spacing.l),
-            balanceTitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Spacing.l),
+        headerView.snp.makeConstraints { make in
+            make.top.leading.trailing.equalToSuperview()
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.top).offset(51)
+        }
 
-            visibilityButton.centerYAnchor.constraint(equalTo: balanceTitleLabel.centerYAnchor),
-            visibilityButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Spacing.l),
-            visibilityButton.widthAnchor.constraint(equalToConstant: 28),
-            visibilityButton.heightAnchor.constraint(equalToConstant: 28),
+        balanceTitleLabel.snp.makeConstraints { make in
+            make.top.equalTo(headerView.snp.bottom).offset(Spacing.l)
+            make.leading.equalToSuperview().inset(Spacing.l)
+        }
 
-            balanceAmountLabel.topAnchor.constraint(equalTo: balanceTitleLabel.bottomAnchor, constant: Spacing.s),
-            balanceAmountLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Spacing.l),
+        visibilityButton.snp.makeConstraints { make in
+            make.centerY.equalTo(balanceTitleLabel)
+            make.trailing.equalToSuperview().inset(Spacing.l)
+            make.width.height.equalTo(28)
+        }
 
-            balanceFiatLabel.topAnchor.constraint(equalTo: balanceAmountLabel.bottomAnchor, constant: Spacing.xs),
-            balanceFiatLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Spacing.l),
+        balanceAmountLabel.snp.makeConstraints { make in
+            make.top.equalTo(balanceTitleLabel.snp.bottom).offset(Spacing.s)
+            make.leading.equalToSuperview().inset(Spacing.l)
+        }
 
-            tabsStackView.topAnchor.constraint(equalTo: balanceFiatLabel.bottomAnchor, constant: Spacing.l),
-            tabsStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Spacing.l),
-            tabsStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Spacing.l),
-            tabsStackView.heightAnchor.constraint(equalToConstant: 44),
+        balanceFiatLabel.snp.makeConstraints { make in
+            make.top.equalTo(balanceAmountLabel.snp.bottom).offset(Spacing.xs)
+            make.leading.equalToSuperview().inset(Spacing.l)
+        }
 
-            tableView.topAnchor.constraint(equalTo: tabsStackView.bottomAnchor, constant: Spacing.m),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
-        ])
+        tabsStackView.snp.makeConstraints { make in
+            make.top.equalTo(balanceFiatLabel.snp.bottom).offset(Spacing.l)
+            make.leading.trailing.equalToSuperview().inset(Spacing.l)
+            make.height.equalTo(44)
+        }
+
+        tableView.snp.makeConstraints { make in
+            make.top.equalTo(tabsStackView.snp.bottom).offset(Spacing.m)
+            make.leading.trailing.equalToSuperview()
+            make.bottom.equalTo(view.safeAreaLayoutGuide)
+        }
     }
 
     // MARK: - Binding
@@ -151,9 +179,11 @@ final class WalletViewController: UIViewController {
         present(vc, animated: true)
     }
 
+    private func openDev() {
+        navigationController?.pushViewController(UnderDevelopmentViewController(), animated: true)
+    }
+
     // MARK: - Helpers
-
-
 
     private func makeTabButton(title: String, isActive: Bool) -> UIButton {
         let button = UIButton(type: .system)
