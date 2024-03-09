@@ -14,6 +14,13 @@ final class WalletViewController: UIViewController {
         return label
     }()
 
+    private lazy var visibilityButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.tintColor = .appTextSecondary
+        button.setImage(UIImage(named: "unview"), for: .normal)
+        return button
+    }()
+
     private let balanceAmountLabel: UILabel = {
         let label = UILabel()
         label.font = AppFonts.bold(34)
@@ -63,6 +70,7 @@ final class WalletViewController: UIViewController {
         setupLayout()
         bindViewModel()
         depositButton.addTarget(self, action: #selector(depositTapped), for: .touchUpInside)
+        visibilityButton.addTarget(self, action: #selector(visibilityTapped), for: .touchUpInside)
         viewModel.load()
     }
 
@@ -74,7 +82,7 @@ final class WalletViewController: UIViewController {
     }
 
     private func setupLayout() {
-        [balanceTitleLabel, balanceAmountLabel, balanceFiatLabel, tabsStackView, tableView].forEach {
+        [balanceTitleLabel, visibilityButton, balanceAmountLabel, balanceFiatLabel, tabsStackView, tableView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -86,6 +94,11 @@ final class WalletViewController: UIViewController {
         NSLayoutConstraint.activate([
             balanceTitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: Spacing.l),
             balanceTitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Spacing.l),
+
+            visibilityButton.centerYAnchor.constraint(equalTo: balanceTitleLabel.centerYAnchor),
+            visibilityButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Spacing.l),
+            visibilityButton.widthAnchor.constraint(equalToConstant: 28),
+            visibilityButton.heightAnchor.constraint(equalToConstant: 28),
 
             balanceAmountLabel.topAnchor.constraint(equalTo: balanceTitleLabel.bottomAnchor, constant: Spacing.s),
             balanceAmountLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Spacing.l),
@@ -110,9 +123,10 @@ final class WalletViewController: UIViewController {
     private func bindViewModel() {
         viewModel.onStateChange = { [weak self] state in
             guard let self else { return }
-            if case .loaded(let balance, let holdings) = state {
-                self.balanceAmountLabel.text = String(format: "%.2f", balance)
-                self.balanceFiatLabel.text = String(format: "$%.2f", balance)
+            if case .loaded(let balance, let holdings, let isHidden) = state {
+                self.balanceAmountLabel.text = isHidden ? "••••••" : String(format: "%.2f", balance)
+                self.balanceFiatLabel.text   = isHidden ? "••••••" : String(format: "$%.2f", balance)
+                self.visibilityButton.setImage(UIImage(named: isHidden ? "view" : "unview"), for: .normal)
                 self.holdings = holdings
                 self.tableView.reloadData()
             }
@@ -120,6 +134,10 @@ final class WalletViewController: UIViewController {
     }
 
     // MARK: - Actions
+
+    @objc private func visibilityTapped() {
+        viewModel.toggleBalanceVisibility()
+    }
 
     @objc private func depositTapped() {
         let vc = DepositViewController()
