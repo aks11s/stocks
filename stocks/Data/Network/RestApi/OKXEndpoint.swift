@@ -17,6 +17,7 @@ enum OKXEndpoint {
     case allTickers
     case ticker(instId: String)
     case candles(instId: String, bar: KlineInterval, limit: Int = 500)
+    case depth(instId: String, sz: Int = 20)
 
     var url: URL {
         URL(string: OKXEndpoint.baseURL + path)!
@@ -27,6 +28,7 @@ enum OKXEndpoint {
         case .allTickers:  return "/market/tickers"
         case .ticker:      return "/market/ticker"
         case .candles:     return "/market/candles"
+        case .depth:       return "/market/books"
         }
     }
 
@@ -38,6 +40,8 @@ enum OKXEndpoint {
             return ["instId": instId]
         case .candles(let instId, let bar, let limit):
             return ["instId": instId, "bar": bar.rawValue, "limit": limit]
+        case .depth(let instId, let sz):
+            return ["instId": instId, "sz": sz]
         }
     }
 }

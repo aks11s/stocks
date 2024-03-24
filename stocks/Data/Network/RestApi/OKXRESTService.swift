@@ -4,6 +4,7 @@ protocol OKXRESTServiceProtocol {
     func fetchAllTickers() async throws -> [TickerRESTDTO]
     func fetchTicker(symbol: String) async throws -> TickerRESTDTO
     func fetchKlines(symbol: String, interval: KlineInterval, limit: Int) async throws -> [KlineRESTDTO]
+    func fetchDepth(symbol: String) async throws -> DepthDTO
 }
 
 final class OKXRESTService: OKXRESTServiceProtocol {
@@ -25,5 +26,11 @@ final class OKXRESTService: OKXRESTServiceProtocol {
 
     func fetchKlines(symbol: String, interval: KlineInterval, limit: Int = 500) async throws -> [KlineRESTDTO] {
         try await network.request(.candles(instId: symbol, bar: interval, limit: limit))
+    }
+
+    func fetchDepth(symbol: String) async throws -> DepthDTO {
+        let list: [DepthDTO] = try await network.request(.depth(instId: symbol))
+        guard let depth = list.first else { throw URLError(.badServerResponse) }
+        return depth
     }
 }
