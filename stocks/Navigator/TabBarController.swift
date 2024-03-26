@@ -4,6 +4,7 @@ final class TabBarController: UITabBarController {
 
     private(set) var coordinator: Coordinator
     var onLogout: (() -> Void)?
+    var onShowTrade: ((String) -> Void)?
 
     // MARK: - Init
 
@@ -35,6 +36,7 @@ final class TabBarController: UITabBarController {
             image: UIImage(named: "tab_markets"),
             tag: 1
         )
+        vc.onSelectPair = { [weak self] symbol in self?.onShowTrade?(symbol) }
         return vc
     }()
 

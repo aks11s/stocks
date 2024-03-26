@@ -71,6 +71,8 @@ final class MarketsViewController: UIViewController {
 
     // MARK: - State
 
+    var onSelectPair: ((String) -> Void)?
+
     private var tokens: [MarketToken] = []
 
     // MARK: - Lifecycle
@@ -226,6 +228,11 @@ extension MarketsViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 
 extension MarketsViewController: UITableViewDelegate {
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        onSelectPair?(tokens[indexPath.row].symbol)
+    }
 
     // Swipe-to-delete removes token from favorites
     func tableView(_ tableView: UITableView,

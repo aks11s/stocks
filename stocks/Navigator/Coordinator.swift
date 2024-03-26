@@ -48,8 +48,17 @@ final class MainCoordinator: Coordinator {
 
     private func showMainApp() {
         let tabBar = TabBarController(coordinator: self)
-        tabBar.onLogout = { [weak self] in self?.logout() }
+        tabBar.onLogout    = { [weak self] in self?.logout() }
+        tabBar.onShowTrade = { [weak self] symbol in
+            Task { @MainActor [weak self] in self?.showTrade(symbol: symbol) }
+        }
         navigationController.setViewControllers([tabBar], animated: true)
+    }
+
+    @MainActor func showTrade(symbol: String) {
+        let vm = TradeViewModel(symbol: symbol)
+        let vc = TradeViewController(viewModel: vm)
+        navigationController.pushViewController(vc, animated: true)
     }
 
     private func logout() {
