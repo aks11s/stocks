@@ -34,10 +34,6 @@ final class TradeViewController: UIViewController {
         return b
     }()
 
-    // MARK: - Mode selector
-
-    private let modeSelectorView = UIView()
-
     // MARK: - Price section
 
     private let priceSectionStack = UIStackView()
@@ -162,9 +158,6 @@ final class TradeViewController: UIViewController {
         [avatarView, searchButton, starButton].forEach { headerView.addSubview($0) }
         view.addSubview(headerView)
 
-        // Mode selector
-        view.addSubview(modeSelectorView)
-
         // Price section
         view.addSubview(priceSectionStack)
 
@@ -190,7 +183,6 @@ final class TradeViewController: UIViewController {
 
     private func configureViews() {
         configureHeader()
-        configureModeSelector()
         configurePriceSection()
         configureTimeframeTabs()
         configureBuySellRow()
@@ -204,40 +196,6 @@ final class TradeViewController: UIViewController {
         headerView.layer.shadowRadius = 16
         headerView.layer.shadowOpacity = 0.5
         starButton.addTarget(self, action: #selector(starTapped), for: .touchUpInside)
-    }
-
-    private func configureModeSelector() {
-        modeSelectorView.backgroundColor = .appSurface
-        modeSelectorView.layer.cornerRadius = 12
-
-        let indicator = UIView()
-        indicator.backgroundColor = .appSurfaceCard
-        indicator.layer.cornerRadius = 12
-        modeSelectorView.addSubview(indicator)
-
-        let modeItems = ["Convert", "Spot", "Margin", "Fiat"]
-        let stack = UIStackView()
-        stack.axis = .horizontal
-        stack.distribution = .fillEqually
-        modeSelectorView.addSubview(stack)
-
-        for (index, title) in modeItems.enumerated() {
-            let l = UILabel()
-            l.text = title
-            l.font = AppFonts.regular(14)
-            l.textAlignment = .center
-            l.textColor = index == 1 ? .appLabelMuted : .appTextSecondary
-            stack.addArrangedSubview(l)
-        }
-
-        stack.snp.makeConstraints { $0.edges.equalToSuperview() }
-
-        // Spot is the 2nd item (index 1) → x offset = 25% of width
-        indicator.snp.makeConstraints {
-            $0.top.bottom.equalToSuperview().inset(4)
-            $0.leading.equalToSuperview().offset(modeSelectorView.bounds.width / 4)
-            $0.width.equalToSuperview().dividedBy(4)
-        }
     }
 
     private func configurePriceSection() {
@@ -335,15 +293,9 @@ final class TradeViewController: UIViewController {
             $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.top).offset(51)
         }
 
-        modeSelectorView.snp.makeConstraints {
-            $0.top.equalTo(headerView.snp.bottom).offset(20)
-            $0.leading.trailing.equalToSuperview().inset(Spacing.l)
-            $0.height.equalTo(46)
-        }
-
         priceSectionStack.snp.makeConstraints {
             $0.leading.equalToSuperview().inset(Spacing.l)
-            $0.top.equalTo(modeSelectorView.snp.bottom).offset(24)
+            $0.top.equalTo(headerView.snp.bottom).offset(20)
         }
 
         timeframeTabsView.snp.makeConstraints {
