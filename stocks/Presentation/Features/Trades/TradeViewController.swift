@@ -5,9 +5,21 @@ final class TradeViewController: UIViewController {
 
     private let viewModel: TradeViewModel
 
+    // MARK: - Callbacks
+
+    var onBack: (() -> Void)?
+
     // MARK: - Header
 
     private let headerView = UIView()
+
+    private lazy var backButton: UIButton = {
+        let b = UIButton(type: .system)
+        b.setImage(UIImage(named: "icon_chevron_left")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        b.tintColor = .appTextPrimary
+        b.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
+        return b
+    }()
 
     private lazy var avatarView: UIView = {
         let v = UIView()
@@ -155,7 +167,7 @@ final class TradeViewController: UIViewController {
     private func addSubviews() {
         // Header
         avatarView.addSubview(avatarLabel)
-        [avatarView, searchButton, starButton].forEach { headerView.addSubview($0) }
+        [backButton, avatarView, searchButton, starButton].forEach { headerView.addSubview($0) }
         view.addSubview(headerView)
 
         // Price section
@@ -273,8 +285,13 @@ final class TradeViewController: UIViewController {
     private func applyLayout() {
         avatarLabel.snp.makeConstraints { $0.center.equalToSuperview() }
 
+        backButton.snp.makeConstraints {
+            $0.leading.equalToSuperview().inset(14)
+            $0.centerY.equalTo(avatarView)
+            $0.width.height.equalTo(44)
+        }
         avatarView.snp.makeConstraints {
-            $0.leading.equalToSuperview().inset(24)
+            $0.leading.equalTo(backButton.snp.trailing).offset(4)
             $0.top.equalTo(headerView.safeAreaLayoutGuide).offset(8)
             $0.width.height.equalTo(36)
         }
@@ -359,6 +376,10 @@ final class TradeViewController: UIViewController {
     }
 
     // MARK: - Actions
+
+    @objc private func backTapped() {
+        onBack?()
+    }
 
     @objc private func starTapped() {
         if isFavorite {

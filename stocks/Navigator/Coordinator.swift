@@ -58,6 +58,7 @@ final class MainCoordinator: Coordinator {
     @MainActor func showTrade(symbol: String) {
         let vm = TradeViewModel(symbol: symbol)
         let vc = TradeViewController(viewModel: vm)
+        vc.onBack = { [weak self] in self?.navigationController.popViewController(animated: true) }
         navigationController.pushViewController(vc, animated: true)
     }
 
