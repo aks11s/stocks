@@ -128,12 +128,7 @@ final class TradeViewController: UIViewController {
     // MARK: - Bottom section (white)
 
     private let bottomSection = UIView()
-    private let segmentTabsRow = UIStackView()
-    private var segmentButtons: [UIButton] = []
     private let orderBookView = TradeOrderBookView()
-
-    private let segmentLabels = ["Open Order", "Order Books", "Market Trades"]
-    private var activeSegment: Int = 1
 
     // MARK: - Favorite state
 
@@ -186,7 +181,6 @@ final class TradeViewController: UIViewController {
         view.addSubview(buySellRow)
 
         // Bottom section
-        bottomSection.addSubview(segmentTabsRow)
         bottomSection.addSubview(orderBookView)
         view.addSubview(bottomSection)
     }
@@ -263,21 +257,6 @@ final class TradeViewController: UIViewController {
 
     private func configureBottomSection() {
         bottomSection.backgroundColor = .white
-
-        segmentTabsRow.axis = .horizontal
-        segmentTabsRow.distribution = .fillEqually
-
-        for (index, title) in segmentLabels.enumerated() {
-            let b = UIButton()
-            b.setTitle(title, for: .normal)
-            b.titleLabel?.font = AppFonts.regular(14)
-            b.tag = index
-            b.addTarget(self, action: #selector(segmentTapped(_:)), for: .touchUpInside)
-            segmentTabsRow.addArrangedSubview(b)
-            segmentButtons.append(b)
-        }
-
-        updateSegmentAppearance()
     }
 
     // MARK: - Layout
@@ -338,16 +317,11 @@ final class TradeViewController: UIViewController {
         bottomSection.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
-            $0.height.equalTo(260)
-        }
-
-        segmentTabsRow.snp.makeConstraints {
-            $0.top.leading.trailing.equalToSuperview()
-            $0.height.equalTo(48)
+            $0.height.equalTo(200)
         }
 
         orderBookView.snp.makeConstraints {
-            $0.top.equalTo(segmentTabsRow.snp.bottom)
+            $0.top.equalToSuperview().offset(12)
             $0.leading.trailing.bottom.equalToSuperview()
         }
     }
@@ -399,25 +373,11 @@ final class TradeViewController: UIViewController {
         viewModel.selectInterval(interval)
     }
 
-    @objc private func segmentTapped(_ sender: UIButton) {
-        activeSegment = sender.tag
-        updateSegmentAppearance()
-        orderBookView.isHidden = activeSegment != 1
-    }
-
     // MARK: - Helpers
 
     private func updateStarButton() {
         let name = isFavorite ? "star.fill" : "star"
         starButton.setImage(UIImage(systemName: name), for: .normal)
-    }
-
-    private func updateSegmentAppearance() {
-        for (index, btn) in segmentButtons.enumerated() {
-            let isActive = index == activeSegment
-            btn.setTitleColor(isActive ? UIColor(hex: "#1B232A") : .appTextMuted, for: .normal)
-            btn.backgroundColor = isActive ? UIColor(hex: "#F1F4F6") : .white
-        }
     }
 
     private func formatPrice(_ value: Double) -> String {
