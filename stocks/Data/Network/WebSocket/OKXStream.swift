@@ -53,7 +53,14 @@ enum OKXStream {
 }
 
 extension OKXStream {
-    static let wsURL = URL(string: "wss://ws.okx.com:8443/ws/v5/public")!
+    static let wsURL       = URL(string: "wss://ws.okx.com:8443/ws/v5/public")!
+    // Candlestick channels live on the dedicated "business" endpoint, not "public"
+    static let businessURL = URL(string: "wss://ws.okx.com:8443/ws/v5/business")!
+
+    var isBusinessChannel: Bool {
+        if case .kline = self { return true }
+        return false
+    }
 
     // OKX subscribe format: {"op":"subscribe","args":[{"channel":"...","instId":"..."},...]}
     static func subscriptionMessage(for streams: [OKXStream]) -> String {
@@ -64,5 +71,7 @@ extension OKXStream {
         return "{\"op\":\"subscribe\",\"args\":[\(argsJSON)]}"
     }
 
-    static func combinedURL(for streams: [OKXStream]) -> URL { wsURL }
+    static func endpoint(for streams: [OKXStream]) -> URL {
+        streams.contains(where: \.isBusinessChannel) ? businessURL : wsURL
+    }
 }

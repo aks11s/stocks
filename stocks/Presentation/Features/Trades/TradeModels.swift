@@ -28,6 +28,15 @@ extension Candle {
         close     = Double(dto.close)  ?? 0
         volume    = Double(dto.volume) ?? 0
     }
+
+    init(wsCandle c: KlineDTO.Candle) {
+        timestamp = c.openTime
+        open      = Double(c.open)   ?? 0
+        high      = Double(c.high)   ?? 0
+        low       = Double(c.low)    ?? 0
+        close     = Double(c.close)  ?? 0
+        volume    = Double(c.volume) ?? 0
+    }
 }
 
 extension OrderBook {

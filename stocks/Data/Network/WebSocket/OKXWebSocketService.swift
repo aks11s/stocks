@@ -36,7 +36,7 @@ final class OKXWebSocketService: OKXWebSocketServiceProtocol {
 
     func connect(streams: [OKXStream]) {
         pendingStreams = streams
-        socket.connect(url: OKXStream.wsURL)
+        socket.connect(url: OKXStream.endpoint(for: streams))
     }
 
     func disconnect() {

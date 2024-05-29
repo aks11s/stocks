@@ -347,6 +347,14 @@ final class TradeViewController: UIViewController {
                 self.chartLoadingIndicator.stopAnimating()
             }
         }
+
+        viewModel.onCandleTick = { [weak self] candle in
+            self?.chartView.update(candle: candle)
+        }
+
+        viewModel.onPriceTick = { [weak self] price in
+            self?.priceLabel.text = self?.formatPrice(price)
+        }
     }
 
     // MARK: - Actions

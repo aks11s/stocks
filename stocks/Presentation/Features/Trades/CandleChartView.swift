@@ -9,6 +9,8 @@ final class CandleChartView: UIView {
     private let gradientLayer = CAGradientLayer()
     private let dateFormatter = CandleXAxisFormatter()
 
+    private var dataSet: CandleChartDataSet?
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
@@ -35,7 +37,34 @@ final class CandleChartView: UIView {
         dataSet.drawValuesEnabled      = false
         dataSet.drawIconsEnabled       = false
 
+        self.dataSet = dataSet
         chartView.data = CandleChartData(dataSet: dataSet)
+    }
+
+    // Apply a single live tick — update the last candle in place, or append a new one
+    func update(candle: Candle) {
+        guard let dataSet else { return }
+
+        if let lastTs = dateFormatter.timestamps.last, lastTs == candle.timestamp {
+            guard let entry = dataSet.entryForIndex(dataSet.entryCount - 1) as? CandleChartDataEntry else { return }
+            entry.high  = candle.high
+            entry.low   = candle.low
+            entry.open  = candle.open
+            entry.close = candle.close
+        } else {
+            let entry = CandleChartDataEntry(
+                x: Double(dataSet.entryCount),
+                shadowH: candle.high,
+                shadowL: candle.low,
+                open: candle.open,
+                close: candle.close
+            )
+            _ = dataSet.addEntryOrdered(entry)
+            dateFormatter.timestamps.append(candle.timestamp)
+        }
+
+        chartView.data?.notifyDataChanged()
+        chartView.notifyDataSetChanged()
     }
 
     // MARK: - Layout

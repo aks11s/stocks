@@ -11,6 +11,12 @@ final class TradeViewModel {
 
     var onStateChange: ((State) -> Void)?
 
+    // Emitted on each live candle tick — the VC updates only the last candle
+    var onCandleTick: ((Candle) -> Void)?
+
+    // Latest price from the live candle close — the VC updates only the price label
+    var onPriceTick: ((Double) -> Void)?
+
     private(set) var state: State = .loading {
         didSet { onStateChange?(state) }
     }
@@ -19,10 +25,17 @@ final class TradeViewModel {
     let symbol: String
 
     private let rest: OKXRESTServiceProtocol
+    private let ws: OKXWebSocketServiceProtocol
+    private var klineTask: Task<Void, Never>?
 
-    init(symbol: String, rest: OKXRESTServiceProtocol = OKXRESTService()) {
+    init(
+        symbol: String,
+        rest: OKXRESTServiceProtocol = OKXRESTService(),
+        ws: OKXWebSocketServiceProtocol = OKXWebSocketService()
+    ) {
         self.symbol = symbol
         self.rest = rest
+        self.ws = ws
     }
 
     func load() {
@@ -61,8 +74,30 @@ final class TradeViewModel {
                 price: price,
                 changePercent: changePct
             )
+
+            startLiveCandles()
         } catch {
             state = .error(error.localizedDescription)
         }
+    }
+
+    private func startLiveCandles() {
+        klineTask?.cancel()
+        ws.disconnect()
+        ws.connect(streams: [.kline(symbol: symbol, interval: selectedInterval)])
+
+        klineTask = Task { [weak self] in
+            guard let self else { return }
+            for await dto in ws.klineStream(symbol: symbol, interval: selectedInterval) {
+                let candle = Candle(wsCandle: dto.candle)
+                self.onCandleTick?(candle)
+                self.onPriceTick?(candle.close)
+            }
+        }
+    }
+
+    deinit {
+        klineTask?.cancel()
+        ws.disconnect()
     }
 }
