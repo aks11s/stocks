@@ -58,8 +58,25 @@ final class MainCoordinator: Coordinator {
     @MainActor func showTrade(symbol: String) {
         let vm = TradeViewModel(symbol: symbol)
         let vc = TradeViewController(viewModel: vm)
-        vc.onBack = { [weak self] in self?.navigationController.popViewController(animated: true) }
-        navigationController.pushViewController(vc, animated: true)
+        vc.onBack = { [weak self] in self?.navigationController.popToRootViewController(animated: true) }
+        vc.onShowPairPicker = { [weak self] in self?.showPairPicker() }
+
+        var stack = navigationController.viewControllers
+        if stack.last is TradeViewController {
+            stack[stack.count - 1] = vc
+            navigationController.setViewControllers(stack, animated: false)
+        } else {
+            navigationController.pushViewController(vc, animated: true)
+        }
+    }
+
+    @MainActor private func showPairPicker() {
+        let vm = PairPickerViewModel()
+        let picker = PairPickerViewController(viewModel: vm)
+        picker.onSelectPair = { [weak self] symbol in
+            self?.showTrade(symbol: symbol)
+        }
+        navigationController.present(picker, animated: true)
     }
 
     private func logout() {

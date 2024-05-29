@@ -8,6 +8,7 @@ final class TradeViewController: UIViewController {
     // MARK: - Callbacks
 
     var onBack: (() -> Void)?
+    var onShowPairPicker: (() -> Void)?
 
     // MARK: - Header
 
@@ -16,29 +17,18 @@ final class TradeViewController: UIViewController {
     private lazy var backButton: UIButton = {
         let b = UIButton(type: .system)
         b.setImage(UIImage(named: "icon_chevron_left")?.withRenderingMode(.alwaysTemplate), for: .normal)
-        b.tintColor = .appTextPrimary
+        b.tintColor = .appAccent
         b.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
         return b
     }()
 
-    private lazy var avatarView: UIView = {
-        let v = UIView()
-        v.backgroundColor = .appAccent
-        v.layer.cornerRadius = 18
-        v.clipsToBounds = true
-        return v
+    private lazy var searchButton: UIButton = {
+        let b = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+        b.setImage(UIImage(systemName: "magnifyingglass", withConfiguration: config), for: .normal)
+        b.tintColor = .appAccent
+        return b
     }()
-
-    private lazy var avatarLabel: UILabel = {
-        let l = UILabel()
-        l.font = AppFonts.bold(14)
-        l.textColor = .appBackground
-        l.textAlignment = .center
-        l.text = ProfileStorage.shared.username?.first.map { String($0).uppercased() } ?? "U"
-        return l
-    }()
-
-    private lazy var searchButton: UIButton = makeIconButton(named: "icon_search")
 
     private lazy var starButton: UIButton = {
         let b = UIButton(type: .system)
@@ -161,8 +151,7 @@ final class TradeViewController: UIViewController {
 
     private func addSubviews() {
         // Header
-        avatarView.addSubview(avatarLabel)
-        [backButton, avatarView, searchButton, starButton].forEach { headerView.addSubview($0) }
+        [backButton, searchButton, starButton].forEach { headerView.addSubview($0) }
         view.addSubview(headerView)
 
         // Price section
@@ -202,6 +191,7 @@ final class TradeViewController: UIViewController {
         headerView.layer.shadowRadius = 16
         headerView.layer.shadowOpacity = 0.5
         starButton.addTarget(self, action: #selector(starTapped), for: .touchUpInside)
+        searchButton.addTarget(self, action: #selector(searchTapped), for: .touchUpInside)
     }
 
     private func configurePriceSection() {
@@ -262,26 +252,19 @@ final class TradeViewController: UIViewController {
     // MARK: - Layout
 
     private func applyLayout() {
-        avatarLabel.snp.makeConstraints { $0.center.equalToSuperview() }
-
         backButton.snp.makeConstraints {
             $0.leading.equalToSuperview().inset(14)
-            $0.centerY.equalTo(avatarView)
+            $0.centerY.equalTo(view.safeAreaLayoutGuide.snp.top).offset(26)
             $0.width.height.equalTo(44)
-        }
-        avatarView.snp.makeConstraints {
-            $0.leading.equalTo(backButton.snp.trailing).offset(4)
-            $0.top.equalTo(headerView.safeAreaLayoutGuide).offset(8)
-            $0.width.height.equalTo(36)
         }
         starButton.snp.makeConstraints {
             $0.trailing.equalToSuperview().inset(14)
-            $0.centerY.equalTo(avatarView)
+            $0.centerY.equalTo(view.safeAreaLayoutGuide.snp.top).offset(26)
             $0.width.height.equalTo(44)
         }
         searchButton.snp.makeConstraints {
             $0.trailing.equalTo(starButton.snp.leading).offset(-8)
-            $0.centerY.equalTo(avatarView)
+            $0.centerY.equalTo(view.safeAreaLayoutGuide.snp.top).offset(26)
             $0.width.height.equalTo(44)
         }
         headerView.snp.makeConstraints {
@@ -367,6 +350,10 @@ final class TradeViewController: UIViewController {
         onBack?()
     }
 
+    @objc private func searchTapped() {
+        onShowPairPicker?()
+    }
+
     @objc private func starTapped() {
         if isFavorite {
             FavoritesStorage.shared.remove(viewModel.symbol)
@@ -401,12 +388,3 @@ final class TradeViewController: UIViewController {
     }
 }
 
-// MARK: - Factory
-
-private func makeIconButton(named name: String) -> UIButton {
-    let b = UIButton(type: .system)
-    let img = UIImage(named: name)?.withRenderingMode(.alwaysTemplate)
-    b.setImage(img, for: .normal)
-    b.tintColor = .appAccent
-    return b
-}
