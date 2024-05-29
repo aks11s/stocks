@@ -17,6 +17,9 @@ final class TradeViewModel {
     // Latest price from the live candle close — the VC updates only the price label
     var onPriceTick: ((Double) -> Void)?
 
+    // Emitted on each live depth snapshot — the VC re-renders the order book
+    var onOrderBookTick: ((OrderBook) -> Void)?
+
     private(set) var state: State = .loading {
         didSet { onStateChange?(state) }
     }
@@ -25,17 +28,22 @@ final class TradeViewModel {
     let symbol: String
 
     private let rest: OKXRESTServiceProtocol
-    private let ws: OKXWebSocketServiceProtocol
+    // Candlesticks use the OKX "business" endpoint; depth uses "public" — they need separate sockets
+    private let candleWS: OKXWebSocketServiceProtocol
+    private let depthWS: OKXWebSocketServiceProtocol
     private var klineTask: Task<Void, Never>?
+    private var depthTask: Task<Void, Never>?
 
     init(
         symbol: String,
         rest: OKXRESTServiceProtocol = OKXRESTService(),
-        ws: OKXWebSocketServiceProtocol = OKXWebSocketService()
+        candleWS: OKXWebSocketServiceProtocol = OKXWebSocketService(),
+        depthWS: OKXWebSocketServiceProtocol = OKXWebSocketService()
     ) {
         self.symbol = symbol
         self.rest = rest
-        self.ws = ws
+        self.candleWS = candleWS
+        self.depthWS = depthWS
     }
 
     func load() {
@@ -76,6 +84,7 @@ final class TradeViewModel {
             )
 
             startLiveCandles()
+            startLiveOrderBookIfNeeded()
         } catch {
             state = .error(error.localizedDescription)
         }
@@ -83,12 +92,12 @@ final class TradeViewModel {
 
     private func startLiveCandles() {
         klineTask?.cancel()
-        ws.disconnect()
-        ws.connect(streams: [.kline(symbol: symbol, interval: selectedInterval)])
+        candleWS.disconnect()
+        candleWS.connect(streams: [.kline(symbol: symbol, interval: selectedInterval)])
 
         klineTask = Task { [weak self] in
             guard let self else { return }
-            for await dto in ws.klineStream(symbol: symbol, interval: selectedInterval) {
+            for await dto in candleWS.klineStream(symbol: symbol, interval: selectedInterval) {
                 let candle = Candle(wsCandle: dto.candle)
                 self.onCandleTick?(candle)
                 self.onPriceTick?(candle.close)
@@ -96,8 +105,23 @@ final class TradeViewModel {
         }
     }
 
+    // Depth is interval-independent, so subscribe only once — interval changes don't touch it
+    private func startLiveOrderBookIfNeeded() {
+        guard depthTask == nil else { return }
+        depthWS.connect(streams: [.depth(symbol: symbol, levels: .five)])
+
+        depthTask = Task { [weak self] in
+            guard let self else { return }
+            for await dto in depthWS.depthStream(symbol: symbol) {
+                self.onOrderBookTick?(OrderBook(dto: dto))
+            }
+        }
+    }
+
     deinit {
         klineTask?.cancel()
-        ws.disconnect()
+        depthTask?.cancel()
+        candleWS.disconnect()
+        depthWS.disconnect()
     }
 }

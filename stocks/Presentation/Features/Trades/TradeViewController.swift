@@ -106,8 +106,8 @@ final class TradeViewController: UIViewController {
         b.titleLabel?.font = AppFonts.regular(14)
         b.backgroundColor = .appAccent
         b.layer.shadowColor = UIColor.appAccent.withAlphaComponent(0.16).cgColor
-        b.layer.shadowOffset = CGSize(width: 0, height: 8)
-        b.layer.shadowRadius = 20
+        b.layer.shadowOffset = CGSize(width: 0, height: 2)
+        b.layer.shadowRadius = 8
         b.layer.shadowOpacity = 1
         return b
     }()
@@ -119,8 +119,8 @@ final class TradeViewController: UIViewController {
         b.titleLabel?.font = AppFonts.regular(14)
         b.backgroundColor = .appRed
         b.layer.shadowColor = UIColor.appRed.withAlphaComponent(0.16).cgColor
-        b.layer.shadowOffset = CGSize(width: 0, height: 8)
-        b.layer.shadowRadius = 20
+        b.layer.shadowOffset = CGSize(width: 0, height: 2)
+        b.layer.shadowRadius = 8
         b.layer.shadowOpacity = 1
         return b
     }()
@@ -317,11 +317,11 @@ final class TradeViewController: UIViewController {
         bottomSection.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
-            $0.height.equalTo(200)
+            $0.height.equalTo(156)
         }
 
         orderBookView.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(12)
+            $0.top.equalToSuperview().offset(2)
             $0.leading.trailing.bottom.equalToSuperview()
         }
     }
@@ -354,6 +354,10 @@ final class TradeViewController: UIViewController {
 
         viewModel.onPriceTick = { [weak self] price in
             self?.priceLabel.text = self?.formatPrice(price)
+        }
+
+        viewModel.onOrderBookTick = { [weak self] orderBook in
+            self?.orderBookView.configure(orderBook: orderBook)
         }
     }
 
