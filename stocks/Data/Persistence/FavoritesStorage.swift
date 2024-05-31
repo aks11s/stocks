@@ -1,7 +1,6 @@
 import Foundation
 
-// Persists the user's favorite trading pairs across sessions.
-// Pre-seeded with the 6 tokens shown in the Figma design on first launch.
+// stores favorite pairs between launches, seeded with the 6 from the design
 final class FavoritesStorage {
 
     static let shared = FavoritesStorage()

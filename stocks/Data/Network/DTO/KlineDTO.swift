@@ -1,7 +1,7 @@
 import Foundation
 
-// OKX candle WS data: [ts, open, high, low, close, vol, volCcy, volCcyQuote, confirm]
-// symbol is not in the data array — set by OKXWebSocketService from arg.instId
+// OKX candle WS row: [ts, open, high, low, close, vol, volCcy, volCcyQuote, confirm]
+// the symbol isn't in the row, OKXWebSocketService fills it from arg.instId
 struct KlineDTO {
     let symbol: String
     let candle: Candle
@@ -13,7 +13,7 @@ struct KlineDTO {
         let low: String
         let close: String
         let volume: String
-        // confirm == "1" means the candle is closed — only then should chart history be updated
+        // confirm == "1" means the candle closed; only then update chart history
         let isClosed: Bool
 
         init(from decoder: Decoder) throws {

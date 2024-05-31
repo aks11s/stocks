@@ -1,7 +1,7 @@
 import Foundation
 
-// Order book snapshot for the depth view on Detail screen
-// Prices and quantities come as strings — Binance does this to avoid floating-point precision loss
+// order book snapshot for the trade screen
+// price/qty come as strings to dodge float rounding
 struct DepthDTO: Decodable {
     let bids: [[String]]
     let asks: [[String]]

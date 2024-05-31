@@ -10,9 +10,9 @@ final class QuickActionsView: UIView {
         let imageName: String
     }
 
-    // Matches Figma layout exactly:
-    // Row 1: Deposit(44,105), Referral(138,105), Grid Trading(223,105), Margin/Settings(337,115)
-    // Row 2: Launchpad(37,185), Savings(138,185), Liquid Swap(223,185), More(327,185)
+    // positions taken straight from the design
+    // row 1: Deposit(44,105), Referral(138,105), Grid Trading(223,105), Margin/Settings(337,115)
+    // row 2: Launchpad(37,185), Savings(138,185), Liquid Swap(223,185), More(327,185)
     private let items: [[Item]] = [
         [
             Item(title: "Deposit",      imageName: "menu_deposit"),

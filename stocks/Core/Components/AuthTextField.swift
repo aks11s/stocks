@@ -1,7 +1,7 @@
 import UIKit
 import SnapKit
 
-// Reusable dark input field for auth screens — matches Figma Component 14/15
+// dark input field reused across the auth screens
 final class AuthTextField: UIView {
 
     let textField: UITextField = {
@@ -67,7 +67,7 @@ final class AuthTextField: UIView {
         textField.text = nil
     }
 
-    // Enables/disables +7 (XXX) XXX-XX-XX masking for phone input
+    // turn the +7 (XXX) XXX-XX-XX mask on or off
     func setPhoneMode(_ enabled: Bool) {
         isPhone = enabled
         if enabled {
@@ -131,7 +131,7 @@ extension AuthTextField: UITextFieldDelegate {
         guard let swiftRange = Range(range, in: current) else { return false }
         let updated = current.replacingCharacters(in: swiftRange, with: string)
 
-        // Strip everything except digits, then drop leading 7/8 (country code)
+        // keep digits only, then drop a leading 7/8 country code
         var digits = updated.filter { $0.isNumber }
         if digits.hasPrefix("7") || digits.hasPrefix("8") {
             digits = String(digits.dropFirst())

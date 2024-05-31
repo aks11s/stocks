@@ -3,7 +3,7 @@ import SnapKit
 
 final class TradeOrderBookView: UIView {
 
-    // OKX books5 delivers exactly 5 levels per side
+    // books5 gives us 5 levels each side
     private static let visibleRows = 5
 
     fileprivate enum Side { case bid, ask }
@@ -123,8 +123,8 @@ final class TradeOrderBookView: UIView {
 
 // MARK: - Row
 
-// One order-book line: price (left) + amount (right) over a depth bar that
-// grows from the right edge proportionally to the level's relative volume.
+// a single book row: price on the left, amount on the right, with a depth bar
+// behind it that grows from the right based on relative volume
 private final class OrderBookRow: UIView {
 
     private let barView = UIView()

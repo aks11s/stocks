@@ -88,7 +88,7 @@ final class MarketsViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        // tableFooterView needs an explicit frame — Auto Layout doesn't apply inside it
+        // footer view won't pick up Auto Layout, so size it by hand
         if let footer = tableView.tableFooterView {
             let width = tableView.bounds.width
             let buttonHeight: CGFloat = 60
@@ -121,7 +121,7 @@ final class MarketsViewController: UIViewController {
         view.addSubview(loadingIndicator)
         view.addSubview(errorLabel)
 
-        // Button lives inside the table footer so it scrolls with the list
+        // put the button in the footer so it scrolls along with the list
         let footer = UIView()
         footer.addSubview(addFavoriteButton)
         tableView.tableFooterView = footer
@@ -183,14 +183,14 @@ final class MarketsViewController: UIViewController {
         let vc = AddFavoriteViewController()
         // reload when closed via the X button
         vc.onDismiss = { [weak self] in
-            self?.viewModel.reload()
+            self?.viewModel.reload()   // closed via the X
         }
         if let sheet = vc.sheetPresentationController {
             sheet.detents = [.large()]
             sheet.prefersGrabberVisible = true
             sheet.preferredCornerRadius = 24
         }
-        // reload when dismissed by swipe-down gesture
+        // also catch the swipe-down dismiss
         vc.presentationController?.delegate = self
         present(vc, animated: true)
     }
@@ -234,7 +234,7 @@ extension MarketsViewController: UITableViewDelegate {
         onSelectPair?(tokens[indexPath.row].symbol)
     }
 
-    // Swipe-to-delete removes token from favorites
+    // swipe left to drop a coin from favorites
     func tableView(_ tableView: UITableView,
                    trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let delete = UIContextualAction(style: .destructive, title: nil) { [weak self] _, _, done in
@@ -242,7 +242,7 @@ extension MarketsViewController: UITableViewDelegate {
             done(true)
         }
         delete.image = makeTrashIcon()
-        // match screen background so only the icon bubble is visible
+        // same as the bg so only the rounded icon shows
         delete.backgroundColor = .appBackground
         return UISwipeActionsConfiguration(actions: [delete])
     }

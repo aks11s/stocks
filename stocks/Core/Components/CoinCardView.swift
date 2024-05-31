@@ -145,7 +145,7 @@ private final class SparklineView: UIView {
             ? UIColor(red: 94/255, green: 213/255, blue: 168/255, alpha: 0.15)
             : UIColor(red: 221/255, green: 75/255, blue: 75/255, alpha: 0.15)
 
-        // Simple mock sparkline points
+        // hardcoded points, just to fake the shape
         let upPoints: [CGFloat]   = [1.0, 0.85, 0.75, 0.80, 0.60, 0.50, 0.55, 0.40, 0.30, 0.20, 0.10]
         let downPoints: [CGFloat] = [0.10, 0.20, 0.30, 0.25, 0.45, 0.55, 0.50, 0.65, 0.75, 0.85, 1.0]
         let pts = isUp ? upPoints : downPoints

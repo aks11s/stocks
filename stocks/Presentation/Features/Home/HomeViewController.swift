@@ -99,7 +99,7 @@ final class HomeViewController: UIViewController {
     }
 
     private func setupLayout() {
-        // Header: top of view → extends behind status bar; height = safeArea.top + 51pt
+        // header runs behind the status bar, height = safeArea.top + 51
         headerView.snp.makeConstraints { make in
             make.top.leading.trailing.equalToSuperview()
             make.bottom.equalTo(view.safeAreaLayoutGuide.snp.top).offset(51)
@@ -114,7 +114,7 @@ final class HomeViewController: UIViewController {
         scrollView.snp.makeConstraints { make in
             make.top.equalTo(quickActionsView.snp.bottom)
             make.leading.trailing.equalToSuperview()
-            // Bottom pinned to safeArea so content doesn't hide behind tab bar
+            // pin to safeArea so the tab bar doesn't cover content
             make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
         }
 
@@ -184,12 +184,11 @@ final class HomeViewController: UIViewController {
         return l
     }
 
-    /// Horizontal scroll containing coin cards at their native 163×118pt size.
-    /// Cards peek off the right edge exactly as in Figma (content width = 505pt).
+    // horizontal scroll of 163×118 coin cards, last one peeks off the right edge
     private func makeHorizontalCoinScroll(coins: [CoinMock]) -> UIScrollView {
         let sv = UIScrollView()
         sv.showsHorizontalScrollIndicator = false
-        sv.clipsToBounds = false   // allow cards to visually overflow the scroll frame
+        sv.clipsToBounds = false   // let cards spill past the scroll frame
 
         var prevView: UIView? = nil
         for (i, coin) in coins.enumerated() {

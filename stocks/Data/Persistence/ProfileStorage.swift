@@ -1,7 +1,6 @@
 import Foundation
 
-// Single source of truth for user profile data — all fields are optional
-// because a fresh install has nothing saved yet.
+// Holds the profile fields. Everything is optional since a fresh install is empty.
 final class ProfileStorage {
 
     static let shared = ProfileStorage()
@@ -31,13 +30,13 @@ final class ProfileStorage {
         set { defaults.set(newValue, forKey: Key.phone) }
     }
 
-    // Store only a simple hash — never keep plaintext passwords on device
+    // keep a hash, not the plaintext password
     var passwordHash: String? {
         get { defaults.string(forKey: Key.password) }
         set { defaults.set(newValue, forKey: Key.password) }
     }
 
-    // Called right after sign-in to pre-populate whichever field the user authenticated with
+    // call this on sign-in to prefill whatever the user logged in with
     func saveAuthCredentials(phone: String? = nil, email: String? = nil, password: String) {
         if let phone, !phone.isEmpty { self.phone = phone }
         if let email, !email.isEmpty { self.email = email }
@@ -54,8 +53,7 @@ final class ProfileStorage {
     }
 }
 
-// Lightweight deterministic hash — good enough for local storage,
-// not intended as a cryptographic solution.
+// tiny deterministic hash, fine for local storage but not real crypto
 private extension String {
     var simpleHash: String {
         String(self.unicodeScalars.reduce(5381) { ($0 << 5) &+ $0 &+ UInt64($1.value) })

@@ -11,13 +11,13 @@ final class TradeViewModel {
 
     var onStateChange: ((State) -> Void)?
 
-    // Emitted on each live candle tick — the VC updates only the last candle
+    // live candle tick, VC only redraws the last candle
     var onCandleTick: ((Candle) -> Void)?
 
-    // Latest price from the live candle close — the VC updates only the price label
+    // price from the latest candle close
     var onPriceTick: ((Double) -> Void)?
 
-    // Emitted on each live depth snapshot — the VC re-renders the order book
+    // new depth snapshot, VC redraws the book
     var onOrderBookTick: ((OrderBook) -> Void)?
 
     private(set) var state: State = .loading {
@@ -28,7 +28,7 @@ final class TradeViewModel {
     let symbol: String
 
     private let rest: OKXRESTServiceProtocol
-    // Candlesticks use the OKX "business" endpoint; depth uses "public" — they need separate sockets
+    // candles are on the business endpoint and depth on public, so two sockets
     private let candleWS: OKXWebSocketServiceProtocol
     private let depthWS: OKXWebSocketServiceProtocol
     private var klineTask: Task<Void, Never>?
@@ -105,7 +105,7 @@ final class TradeViewModel {
         }
     }
 
-    // Depth is interval-independent, so subscribe only once — interval changes don't touch it
+    // depth doesn't depend on the interval, so subscribe once and leave it alone
     private func startLiveOrderBookIfNeeded() {
         guard depthTask == nil else { return }
         depthWS.connect(streams: [.depth(symbol: symbol, levels: .five)])

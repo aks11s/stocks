@@ -67,8 +67,8 @@ final class MarketViewModel {
 
     // MARK: - Private
 
-    // Fetch tickers + klines for each symbol concurrently.
-    // Individual symbol failures are swallowed so one delisted pair doesn't break the whole screen.
+    // load ticker + klines for every symbol in parallel
+    // if one symbol throws we just skip it, otherwise a single dead pair kills the list
     private func fetchTokens(symbols: [String]) async throws -> [MarketToken] {
         await withTaskGroup(of: MarketToken?.self) { group in
             for symbol in symbols {
