@@ -9,6 +9,8 @@ final class TradeViewController: UIViewController {
 
     var onBack: (() -> Void)?
     var onShowPairPicker: (() -> Void)?
+    var onBuy: ((Double) -> Void)?
+    var onSell: ((Double) -> Void)?
 
     // MARK: - Header
 
@@ -123,6 +125,9 @@ final class TradeViewController: UIViewController {
     // MARK: - Favorite state
 
     private var isFavorite: Bool = false
+
+    // latest market price, handed to the order screen on Buy/Sell
+    private var lastPrice: Double = 0
 
     // MARK: - Init
 
@@ -243,6 +248,8 @@ final class TradeViewController: UIViewController {
     private func configureBuySellRow() {
         buySellRow.axis = .horizontal
         buySellRow.distribution = .fillEqually
+        buyButton.addTarget(self, action: #selector(buyTapped), for: .touchUpInside)
+        sellButton.addTarget(self, action: #selector(sellTapped), for: .touchUpInside)
     }
 
     private func configureBottomSection() {
@@ -320,6 +327,7 @@ final class TradeViewController: UIViewController {
 
             case .loaded(let candles, let orderBook, let price, let changePct):
                 self.chartLoadingIndicator.stopAnimating()
+                self.lastPrice = price
                 self.chartView.configure(candles: candles)
                 self.orderBookView.configure(orderBook: orderBook)
                 self.priceLabel.text = self.formatPrice(price)
@@ -336,7 +344,9 @@ final class TradeViewController: UIViewController {
         }
 
         viewModel.onPriceTick = { [weak self] price in
-            self?.priceLabel.text = self?.formatPrice(price)
+            guard let self else { return }
+            self.lastPrice = price
+            self.priceLabel.text = self.formatPrice(price)
         }
 
         viewModel.onOrderBookTick = { [weak self] orderBook in
@@ -352,6 +362,14 @@ final class TradeViewController: UIViewController {
 
     @objc private func searchTapped() {
         onShowPairPicker?()
+    }
+
+    @objc private func buyTapped() {
+        onBuy?(lastPrice)
+    }
+
+    @objc private func sellTapped() {
+        onSell?(lastPrice)
     }
 
     @objc private func starTapped() {

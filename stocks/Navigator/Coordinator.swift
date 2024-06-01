@@ -60,6 +60,12 @@ final class MainCoordinator: Coordinator {
         let vc = TradeViewController(viewModel: vm)
         vc.onBack = { [weak self] in self?.navigationController.popToRootViewController(animated: true) }
         vc.onShowPairPicker = { [weak self] in self?.showPairPicker() }
+        vc.onBuy = { [weak self] price in
+            self?.showOrderEntry(symbol: symbol, side: .buy, marketPrice: price)
+        }
+        vc.onSell = { [weak self] price in
+            self?.showOrderEntry(symbol: symbol, side: .sell, marketPrice: price)
+        }
 
         var stack = navigationController.viewControllers
         if stack.last is TradeViewController {
@@ -68,6 +74,13 @@ final class MainCoordinator: Coordinator {
         } else {
             navigationController.pushViewController(vc, animated: true)
         }
+    }
+
+    @MainActor private func showOrderEntry(symbol: String, side: OrderSide, marketPrice: Double) {
+        let vm = OrderEntryViewModel(symbol: symbol, side: side, marketPrice: marketPrice)
+        let vc = OrderEntryViewController(viewModel: vm)
+        vm.onOrderPlaced = { [weak vc] _ in vc?.dismiss(animated: true) }
+        navigationController.present(vc, animated: true)
     }
 
     @MainActor private func showPairPicker() {
