@@ -66,6 +66,14 @@ final class OrderEntryViewController: UIViewController {
     private lazy var priceField = OrderStepperFieldView(title: "Price (\(quote))")
     private lazy var quantityField = OrderStepperFieldView(title: "Amount (\(base))")
 
+    // stack so hiding the price field (market orders) collapses the gap
+    private lazy var fieldsStack: UIStackView = {
+        let s = UIStackView(arrangedSubviews: [priceField, quantityField])
+        s.axis = .vertical
+        s.spacing = Spacing.s
+        return s
+    }()
+
     private let percentRow = UIStackView()
     private var percentButtons: [UIButton] = []
     private let percents: [Double] = [0.25, 0.5, 0.75, 1.0]
@@ -119,7 +127,7 @@ final class OrderEntryViewController: UIViewController {
 
     private func setupViews() {
         [titleLabel, closeButton, typeSelector,
-         priceField, quantityField, percentRow,
+         fieldsStack, percentRow,
          availableLabel, totalLabel, errorLabel, submitButton].forEach { view.addSubview($0) }
 
         configureTypeSelector()
@@ -198,16 +206,12 @@ final class OrderEntryViewController: UIViewController {
             $0.leading.trailing.equalToSuperview().inset(Spacing.l)
             $0.height.equalTo(44)
         }
-        priceField.snp.makeConstraints {
+        fieldsStack.snp.makeConstraints {
             $0.top.equalTo(typeSelector.snp.bottom).offset(Spacing.m)
             $0.leading.trailing.equalToSuperview().inset(Spacing.l)
         }
-        quantityField.snp.makeConstraints {
-            $0.top.equalTo(priceField.snp.bottom).offset(Spacing.s)
-            $0.leading.trailing.equalToSuperview().inset(Spacing.l)
-        }
         percentRow.snp.makeConstraints {
-            $0.top.equalTo(quantityField.snp.bottom).offset(Spacing.m)
+            $0.top.equalTo(fieldsStack.snp.bottom).offset(Spacing.m)
             $0.leading.trailing.equalToSuperview().inset(Spacing.l)
             $0.height.equalTo(36)
         }
@@ -252,7 +256,8 @@ final class OrderEntryViewController: UIViewController {
 
         updateTypeSelection(snapshot.orderType)
 
-        if editingField != .price {
+        priceField.isHidden = !snapshot.showsPrice
+        if snapshot.showsPrice, editingField != .price {
             priceField.setValue(format(snapshot.price))
         }
         if editingField != .quantity {

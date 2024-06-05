@@ -7,6 +7,8 @@ final class OrderEntryViewModel {
         let side: OrderSide
         let orderType: OrderType
         let price: Double
+        // market orders execute at the live price, so the field is hidden
+        let showsPrice: Bool
         let quantity: Double
         let total: Double
         let available: Double
@@ -35,16 +37,20 @@ final class OrderEntryViewModel {
     private let storage: WalletStorage
 
     private var orderType: OrderType = .market
+    // user-entered limit price, used for limit/stop-limit only
     private var price: Double
     private var quantity: Double = 0
 
+    // live price from the trade screen, used as-is for market orders
+    private let marketPrice: Double
     private let priceStep: Double
 
     init(symbol: String, side: OrderSide, marketPrice: Double, storage: WalletStorage = .shared) {
-        self.symbol  = symbol
-        self.side    = side
-        self.price   = marketPrice
-        self.storage = storage
+        self.symbol      = symbol
+        self.side        = side
+        self.price       = marketPrice
+        self.marketPrice = marketPrice
+        self.storage     = storage
 
         let parts = symbol.components(separatedBy: "-")
         self.base  = parts.first ?? symbol
@@ -90,7 +96,7 @@ final class OrderEntryViewModel {
     func selectPercent(_ percent: Double) {
         let clamped = min(max(percent, 0), 1)
         switch side {
-        case .buy:  quantity = price > 0 ? (storage.balance * clamped) / price : 0
+        case .buy:  quantity = effectivePrice > 0 ? (storage.balance * clamped) / effectivePrice : 0
         case .sell: quantity = heldAmount * clamped
         }
         emit()
@@ -112,11 +118,16 @@ final class OrderEntryViewModel {
 
     // MARK: - Private
 
-    private var total: Double { price * quantity }
+    // limit orders fill at the entered price, market orders at the live price
+    private var effectivePrice: Double {
+        orderType == .market ? marketPrice : price
+    }
+
+    private var total: Double { effectivePrice * quantity }
 
     // one tap ≈ one quote unit ($1) worth of the coin
     private var quantityStep: Double {
-        price > 0 ? 1 / price : 0.0001
+        effectivePrice > 0 ? 1 / effectivePrice : 0.0001
     }
 
     private var heldAmount: Double {
@@ -138,13 +149,14 @@ final class OrderEntryViewModel {
     private func makeSnapshot() -> Snapshot {
         let valid: Bool
         switch side {
-        case .buy:  valid = quantity > 0 && price > 0 && total <= storage.balance
-        case .sell: valid = quantity > 0 && price > 0 && quantity <= heldAmount
+        case .buy:  valid = quantity > 0 && effectivePrice > 0 && total <= storage.balance
+        case .sell: valid = quantity > 0 && effectivePrice > 0 && quantity <= heldAmount
         }
         return Snapshot(
             side: side,
             orderType: orderType,
-            price: price,
+            price: effectivePrice,
+            showsPrice: orderType != .market,
             quantity: quantity,
             total: total,
             available: available,
