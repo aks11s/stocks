@@ -9,6 +9,9 @@ final class OrderEntryViewModel {
         let price: Double
         // market orders execute at the live price, so the field is hidden
         let showsPrice: Bool
+        // trigger price, only meaningful for stop-limit orders
+        let stopPrice: Double
+        let showsStop: Bool
         let quantity: Double
         let total: Double
         let available: Double
@@ -39,6 +42,8 @@ final class OrderEntryViewModel {
     private var orderType: OrderType = .market
     // user-entered limit price, used for limit/stop-limit only
     private var price: Double
+    // trigger price that arms the limit order, stop-limit only
+    private var stopPrice: Double
     private var quantity: Double = 0
 
     // live price from the trade screen, used as-is for market orders
@@ -49,6 +54,7 @@ final class OrderEntryViewModel {
         self.symbol      = symbol
         self.side        = side
         self.price       = marketPrice
+        self.stopPrice   = marketPrice
         self.marketPrice = marketPrice
         self.storage     = storage
 
@@ -79,6 +85,16 @@ final class OrderEntryViewModel {
 
     func stepPrice(up: Bool) {
         price = max(0, price + (up ? priceStep : -priceStep))
+        emit()
+    }
+
+    func setStopPrice(_ value: Double) {
+        stopPrice = max(0, value)
+        emit()
+    }
+
+    func stepStopPrice(up: Bool) {
+        stopPrice = max(0, stopPrice + (up ? priceStep : -priceStep))
         emit()
     }
 
@@ -147,16 +163,21 @@ final class OrderEntryViewModel {
     }
 
     private func makeSnapshot() -> Snapshot {
-        let valid: Bool
+        var valid: Bool
         switch side {
         case .buy:  valid = quantity > 0 && effectivePrice > 0 && total <= storage.balance
         case .sell: valid = quantity > 0 && effectivePrice > 0 && quantity <= heldAmount
         }
+        // stop-limit also needs a trigger price to arm the order
+        if orderType == .stopLimit { valid = valid && stopPrice > 0 }
+
         return Snapshot(
             side: side,
             orderType: orderType,
             price: effectivePrice,
             showsPrice: orderType != .market,
+            stopPrice: stopPrice,
+            showsStop: orderType == .stopLimit,
             quantity: quantity,
             total: total,
             available: available,

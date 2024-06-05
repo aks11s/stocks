@@ -9,7 +9,7 @@ final class OrderEntryViewController: UIViewController {
     private let quote: String
 
     // which field the user is typing in, so live state updates don't fight the cursor
-    private enum EditingField { case price, quantity }
+    private enum EditingField { case stop, price, quantity }
     private var editingField: EditingField?
 
     // MARK: - Init
@@ -63,12 +63,13 @@ final class OrderEntryViewController: UIViewController {
         ("Stop-Limit", .stopLimit)
     ]
 
+    private lazy var stopField = OrderStepperFieldView(title: "Stop price (\(quote))")
     private lazy var priceField = OrderStepperFieldView(title: "Price (\(quote))")
     private lazy var quantityField = OrderStepperFieldView(title: "Amount (\(base))")
 
-    // stack so hiding the price field (market orders) collapses the gap
+    // stack so hidden fields (market has no price, stop-limit adds a trigger) collapse the gap
     private lazy var fieldsStack: UIStackView = {
-        let s = UIStackView(arrangedSubviews: [priceField, quantityField])
+        let s = UIStackView(arrangedSubviews: [stopField, priceField, quantityField])
         s.axis = .vertical
         s.spacing = Spacing.s
         return s
@@ -174,6 +175,14 @@ final class OrderEntryViewController: UIViewController {
     }
 
     private func configureFieldCallbacks() {
+        stopField.onStep = { [weak self] up in self?.viewModel.stepStopPrice(up: up) }
+        stopField.onValueEdited = { [weak self] value in
+            guard let self else { return }
+            self.editingField = .stop
+            self.viewModel.setStopPrice(value)
+            self.editingField = nil
+        }
+
         priceField.onStep = { [weak self] up in self?.viewModel.stepPrice(up: up) }
         priceField.onValueEdited = { [weak self] value in
             guard let self else { return }
@@ -255,6 +264,11 @@ final class OrderEntryViewController: UIViewController {
         errorLabel.isHidden = true
 
         updateTypeSelection(snapshot.orderType)
+
+        stopField.isHidden = !snapshot.showsStop
+        if snapshot.showsStop, editingField != .stop {
+            stopField.setValue(format(snapshot.stopPrice))
+        }
 
         priceField.isHidden = !snapshot.showsPrice
         if snapshot.showsPrice, editingField != .price {
