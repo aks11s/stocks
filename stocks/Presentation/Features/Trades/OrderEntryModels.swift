@@ -1,11 +1,11 @@
 import Foundation
 
-enum OrderSide {
+enum OrderSide: String, Codable {
     case buy
     case sell
 }
 
-enum OrderType {
+enum OrderType: String, Codable {
     case limit
     case market
     case stopLimit
