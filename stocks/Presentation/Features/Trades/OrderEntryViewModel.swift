@@ -38,6 +38,7 @@ final class OrderEntryViewModel {
     private let base: String
     private let quote: String
     private let storage: WalletStorage
+    private let orderStorage: OrderStorage
 
     private var orderType: OrderType = .market
     // user-entered limit price, used for limit/stop-limit only
@@ -50,13 +51,20 @@ final class OrderEntryViewModel {
     private let marketPrice: Double
     private let priceStep: Double
 
-    init(symbol: String, side: OrderSide, marketPrice: Double, storage: WalletStorage = .shared) {
-        self.symbol      = symbol
-        self.side        = side
-        self.price       = marketPrice
-        self.stopPrice   = marketPrice
-        self.marketPrice = marketPrice
-        self.storage     = storage
+    init(
+        symbol: String,
+        side: OrderSide,
+        marketPrice: Double,
+        storage: WalletStorage = .shared,
+        orderStorage: OrderStorage = .shared
+    ) {
+        self.symbol       = symbol
+        self.side         = side
+        self.price        = marketPrice
+        self.stopPrice    = marketPrice
+        self.marketPrice  = marketPrice
+        self.storage      = storage
+        self.orderStorage = orderStorage
 
         let parts = symbol.components(separatedBy: "-")
         self.base  = parts.first ?? symbol
@@ -125,11 +133,29 @@ final class OrderEntryViewModel {
             state = .error(insufficientMessage)
             return
         }
-        switch side {
-        case .buy:  storage.buy(symbol: symbol, name: base, amount: quantity, cost: total)
-        case .sell: storage.sell(symbol: symbol, amount: quantity, proceeds: total)
+        // market fills right away; limit/stop-limit sit as pending until triggered
+        if orderType == .market {
+            switch side {
+            case .buy:  storage.buy(symbol: symbol, name: base, amount: quantity, cost: total)
+            case .sell: storage.sell(symbol: symbol, amount: quantity, proceeds: total)
+            }
+            orderStorage.add(makeOrder(status: .filled))
+        } else {
+            orderStorage.add(makeOrder(status: .pending))
         }
         onOrderPlaced?(side)
+    }
+
+    private func makeOrder(status: OrderStatus) -> Order {
+        Order(
+            symbol: symbol,
+            side: side,
+            type: orderType,
+            price: effectivePrice,
+            quantity: quantity,
+            total: total,
+            status: status
+        )
     }
 
     // MARK: - Private
