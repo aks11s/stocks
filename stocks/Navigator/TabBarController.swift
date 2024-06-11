@@ -40,12 +40,22 @@ final class TabBarController: UITabBarController {
         return vc
     }()
 
+    private lazy var ordersVC: UIViewController = {
+        let vc = OrdersViewController(viewModel: OrdersViewModel())
+        vc.tabBarItem = UITabBarItem(
+            title: "Orders",
+            image: UIImage(named: "nav_activity"),
+            tag: 2
+        )
+        return vc
+    }()
+
     private lazy var walletVC: UIViewController = {
         let vc = WalletViewController()
         vc.tabBarItem = UITabBarItem(
             title: "Wallet",
             image: UIImage(named: "tab_wallet"),
-            tag: 2
+            tag: 3
         )
         return vc
     }()
@@ -55,7 +65,7 @@ final class TabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupAppearance()
-        viewControllers = [homeVC, marketsVC, walletVC]
+        viewControllers = [homeVC, marketsVC, ordersVC, walletVC]
     }
 
     // MARK: - Appearance
