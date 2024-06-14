@@ -71,19 +71,16 @@ final class TabBarController: UITabBarController {
     // MARK: - Appearance
 
     private func setupAppearance() {
-        // Colors
         tabBar.tintColor = .appAccent
         tabBar.unselectedItemTintColor = .appTextSecondary
         tabBar.barTintColor = .appBackground
         tabBar.isTranslucent = false
 
-        // Remove the default hairline separator
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = .appBackground
         appearance.shadowColor = .clear
 
-        // Label font — Neue Montreal 12pt
         let labelAttrs: [NSAttributedString.Key: Any] = [
             .font: AppFonts.regular(12)
         ]

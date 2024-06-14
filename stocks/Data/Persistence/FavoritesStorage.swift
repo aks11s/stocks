@@ -1,6 +1,5 @@
 import Foundation
 
-// stores favorite pairs between launches, seeded with the 6 from the design
 final class FavoritesStorage {
 
     static let shared = FavoritesStorage()

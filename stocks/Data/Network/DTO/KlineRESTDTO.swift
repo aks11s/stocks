@@ -1,6 +1,7 @@
 import Foundation
 
-// OKX candles come as string arrays: [ts, open, high, low, close, vol, volCcy, volCcyQuote, confirm]
+// OKX sends a candle as an array of strings, not an object:
+// [ts, open, high, low, close, vol, volCcy, volCcyQuote, confirm]
 struct KlineRESTDTO: Decodable {
     let openTime: Int64
     let open: String
@@ -18,6 +19,5 @@ struct KlineRESTDTO: Decodable {
         low      = try c.decode(String.self)
         close    = try c.decode(String.self)
         volume   = try c.decode(String.self)
-        // volCcy, volCcyQuote, confirm — unused
     }
 }

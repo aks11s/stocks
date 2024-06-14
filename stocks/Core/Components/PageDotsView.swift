@@ -1,6 +1,5 @@
 import UIKit
 
-// Dot dimensions from Figma: 12.24×12.24pt each, gap ~8pt, total width 52pt
 final class PageDotsView: UIView {
 
     private let count: Int

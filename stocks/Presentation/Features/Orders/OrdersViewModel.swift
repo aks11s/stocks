@@ -37,7 +37,6 @@ final class OrdersViewModel {
         load()
     }
 
-    // fill a pending order: run the wallet trade, then mark it filled
     func fill(order: Order) {
         let base = order.symbol.components(separatedBy: "-").first ?? order.symbol
 

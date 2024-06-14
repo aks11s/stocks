@@ -50,11 +50,10 @@ final class EditProfileViewController: UIViewController {
         return l
     }()
 
-    // Camera overlay on the avatar — Figma: camera-plus-outline, 36×36
     private lazy var cameraButton: UIButton = {
         let b = UIButton(type: .system)
         b.setImage(UIImage(named: "icon_camera"), for: .normal)
-        b.tintColor = .clear  // icon has its own colors baked in
+        b.tintColor = .clear
         return b
     }()
 
@@ -63,7 +62,6 @@ final class EditProfileViewController: UIViewController {
     private lazy var passwordField  = makeField(placeholder: "Password", isSecure: true)
     private lazy var phoneField     = makeField(placeholder: "Mobile Number", keyboardType: .phonePad)
 
-    // Save Changes: accent bg, dark text — Figma: 179×54, cornerRadius 16, bg #5ED5A8
     private lazy var saveButton: UIButton = {
         let b = UIButton(type: .system)
         b.setTitle("Save Changes", for: .normal)
@@ -75,7 +73,6 @@ final class EditProfileViewController: UIViewController {
         return b
     }()
 
-    // Cancel: transparent bg, white text — Figma: 179×54, cornerRadius 16
     private lazy var cancelButton: UIButton = {
         let b = UIButton(type: .system)
         b.setTitle("Cancel", for: .normal)
@@ -87,7 +84,6 @@ final class EditProfileViewController: UIViewController {
         return b
     }()
 
-    // Eye button toggles password visibility — Figma: Bulk Icons=Show, 44×44
     private lazy var eyeButton: UIButton = {
         let b = UIButton(type: .system)
         b.setImage(UIImage(named: "icon_eye"), for: .normal)
@@ -101,11 +97,10 @@ final class EditProfileViewController: UIViewController {
     private lazy var passwordLabel  = makeFieldLabel("Password")
     private lazy var phoneLabel     = makeFieldLabel("Mobile Number")
 
-    // Tracks whether the password field still shows the "already set" placeholder
-    // — if the user never touched it, we skip updating the hash on save
+    // the password field starts filled with placeholder dots — if the user never edits it,
+    // we keep the saved hash instead of overwriting it with the dots
     private var passwordIsUnchanged = false
 
-    // Separators between field groups
     private lazy var separators: [UIView] = (0..<5).map { _ in
         let v = UIView()
         v.backgroundColor = UIColor.white.withAlphaComponent(0.08)
@@ -168,7 +163,6 @@ final class EditProfileViewController: UIViewController {
             make.centerY.equalTo(backButton)
         }
 
-        // Avatar: same position as Profile screen
         avatarView.snp.makeConstraints { make in
             make.width.height.equalTo(110)
             make.centerX.equalToSuperview()
@@ -179,14 +173,12 @@ final class EditProfileViewController: UIViewController {
             make.center.equalToSuperview()
         }
 
-        // Camera icon: Figma x=209 rel content (content x=24), avatar right-bottom corner
         cameraButton.snp.makeConstraints { make in
             make.width.height.equalTo(36)
             make.trailing.equalTo(avatarView.snp.trailing)
             make.bottom.equalTo(avatarView.snp.bottom)
         }
 
-        // Field rows: Figma content y starts at 111, first separator at content y=176
         layoutFieldRow(
             separator: separators[0],
             label: usernameLabel,
@@ -201,7 +193,7 @@ final class EditProfileViewController: UIViewController {
             field: emailField,
             eye: nil,
             topAnchor: separators[0].snp.bottom,
-            topOffset: 82   // row height = 82pt (Figma: 258-176=82)
+            topOffset: 82
         )
         layoutFieldRow(
             separator: separators[2],
@@ -209,7 +201,7 @@ final class EditProfileViewController: UIViewController {
             field: passwordField,
             eye: eyeButton,
             topAnchor: separators[1].snp.bottom,
-            topOffset: 77   // Figma: 335-258=77
+            topOffset: 77
         )
         layoutFieldRow(
             separator: separators[3],
@@ -217,17 +209,15 @@ final class EditProfileViewController: UIViewController {
             field: phoneField,
             eye: nil,
             topAnchor: separators[2].snp.bottom,
-            topOffset: 77   // Figma: 412-335=77
+            topOffset: 77
         )
 
-        // Closing separator after last row
         separators[4].snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview().inset(24)
             make.top.equalTo(separators[3].snp.bottom).offset(77)
             make.height.equalTo(0.5)
         }
 
-        // Buttons: Figma content y=549, each 179×54 with 8pt gap between them
         cancelButton.snp.makeConstraints { make in
             make.leading.equalToSuperview().inset(24)
             make.top.equalTo(separators[4].snp.bottom).offset(60)
@@ -257,15 +247,13 @@ final class EditProfileViewController: UIViewController {
             make.height.equalTo(0.5)
         }
 
-        // Label: 12px, ~20pt below separator (Figma: label y offset within row ≈ 20-25pt)
         label.snp.makeConstraints { make in
             make.leading.equalToSuperview().inset(24)
             make.top.equalTo(separator.snp.bottom).offset(20)
         }
 
-        // Input field: ~32pt below separator (label bottom ~34pt + small gap)
         field.snp.makeConstraints { make in
-            make.leading.equalToSuperview().inset(28)  // 4pt indent from edge (Figma x=4 within content)
+            make.leading.equalToSuperview().inset(28)
             make.top.equalTo(separator.snp.bottom).offset(35)
             if let eye {
                 make.trailing.equalTo(eye.snp.leading).offset(-8)
@@ -312,8 +300,6 @@ final class EditProfileViewController: UIViewController {
         emailField.text    = s.email
         phoneField.text    = s.phone.map { formatPhone($0) }
 
-        // Show placeholder dots if a password is already saved —
-        // user must retype to change it, otherwise we keep the existing hash
         if s.passwordHash != nil {
             passwordField.text = "••••••••"
             passwordIsUnchanged = true
@@ -348,7 +334,6 @@ final class EditProfileViewController: UIViewController {
 extension EditProfileViewController: UITextFieldDelegate {
 
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        // Clear the placeholder dots so the user starts fresh when changing password
         if textField == passwordField && passwordIsUnchanged {
             passwordField.text = ""
             passwordIsUnchanged = false
@@ -372,7 +357,6 @@ extension EditProfileViewController: UITextFieldDelegate {
         return false
     }
 
-    // Formats raw digits (or already-masked string) into +7 (XXX) XXX-XX-XX
     private func formatPhone(_ input: String) -> String {
         var digits = input.filter { $0.isNumber }
         if digits.hasPrefix("7") || digits.hasPrefix("8") {

@@ -7,7 +7,6 @@ enum DepthLevel: String {
 }
 
 enum OKXStream {
-    // no global ticker stream, so we subscribe per symbol
     case allMiniTickers
     case ticker(symbol: String)
     case kline(symbol: String, interval: KlineInterval)
@@ -15,7 +14,6 @@ enum OKXStream {
     case aggTrade(symbol: String)
     case bookTicker(symbol: String)
 
-    // key we use to route an incoming message back to its continuation
     var name: String {
         switch self {
         case .allMiniTickers:
@@ -33,7 +31,6 @@ enum OKXStream {
         }
     }
 
-    // the channel/instId pair OKX wants, or nil if there's nothing to subscribe to
     var subscriptionArg: [String: String]? {
         switch self {
         case .allMiniTickers:
@@ -54,7 +51,7 @@ enum OKXStream {
 
 extension OKXStream {
     static let wsURL       = URL(string: "wss://ws.okx.com:8443/ws/v5/public")!
-    // candles only come through the business endpoint, everything else is public
+    // candles only come from the business endpoint, everything else from public
     static let businessURL = URL(string: "wss://ws.okx.com:8443/ws/v5/business")!
 
     var isBusinessChannel: Bool {
@@ -62,7 +59,6 @@ extension OKXStream {
         return false
     }
 
-    // builds the {"op":"subscribe","args":[...]} payload OKX expects
     static func subscriptionMessage(for streams: [OKXStream]) -> String {
         let args = streams.compactMap { $0.subscriptionArg }
         let argsJSON = args

@@ -78,7 +78,8 @@ final class OKXWebSocketService: OKXWebSocketServiceProtocol {
 
     // MARK: - Message routing
 
-    // OKX envelope: {"arg":{"channel":"...","instId":"..."},"data":[...]}
+    // every OKX message looks like {"arg":{"channel":"...","instId":"..."},"data":[...]},
+    // so channel + instId tell us which stream the payload belongs to
     private func route(_ data: Data) {
         guard
             let json     = try? JSONSerialization.jsonObject(with: data) as? [String: Any],

@@ -10,14 +10,12 @@ final class HomeViewController: UIViewController {
         let isUp: Bool; let color: UIColor; let symbol: String
     }
 
-    // "Recent Coin" row — Figma: MFT(green), REN(red), BTC(green)
     private let recentCoins: [CoinMock] = [
         CoinMock(price: "40,059.83", pair: "MFT/BUSD", change: "+0.81%", isUp: true,  color: UIColor(hex: "#7833F6"), symbol: "M"),
         CoinMock(price: "2,059.83",  pair: "REN/BUSD", change: "-0.81%", isUp: false, color: UIColor(hex: "#001E3D"), symbol: "R"),
         CoinMock(price: "40,059.83", pair: "BTC/BUSD", change: "+0.81%", isUp: true,  color: UIColor(hex: "#F7931A"), symbol: "₿"),
     ]
 
-    // "Top Coins" row — Figma: BTC(green), SOL(red), BTC(green)
     private let topCoins: [CoinMock] = [
         CoinMock(price: "40,059.83", pair: "BTC/BUSD", change: "+0.81%", isUp: true,  color: UIColor(hex: "#F7931A"), symbol: "₿"),
         CoinMock(price: "2,059.83",  pair: "SOL/BUSD", change: "-0.81%", isUp: false, color: UIColor(hex: "#2A5ADA"), symbol: "S"),
@@ -99,7 +97,6 @@ final class HomeViewController: UIViewController {
     }
 
     private func setupLayout() {
-        // header runs behind the status bar, height = safeArea.top + 51
         headerView.snp.makeConstraints { make in
             make.top.leading.trailing.equalToSuperview()
             make.bottom.equalTo(view.safeAreaLayoutGuide.snp.top).offset(51)
@@ -114,7 +111,6 @@ final class HomeViewController: UIViewController {
         scrollView.snp.makeConstraints { make in
             make.top.equalTo(quickActionsView.snp.bottom)
             make.leading.trailing.equalToSuperview()
-            // pin to safeArea so the tab bar doesn't cover content
             make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
         }
 
@@ -123,27 +119,23 @@ final class HomeViewController: UIViewController {
             make.width.equalTo(scrollView)
         }
 
-        // P2P card: 21pt from top (screen y=284, dark section ends at y=263 → 284-263=21)
         p2pCard.snp.makeConstraints { make in
             make.top.equalToSuperview().inset(21)
             make.leading.trailing.equalToSuperview().inset(24)
             make.height.equalTo(78)
         }
 
-        // Credit card: 8pt gap (screen y=370, p2p ends at y=362 → 370-362=8)
         creditCard.snp.makeConstraints { make in
             make.top.equalTo(p2pCard.snp.bottom).offset(8)
             make.leading.trailing.equalToSuperview().inset(24)
             make.height.equalTo(78)
         }
 
-        // "Recent Coin" label: 27pt gap (screen y=475, credit ends at 448 → 475-448=27)
         recentCoinLabel.snp.makeConstraints { make in
             make.top.equalTo(creditCard.snp.bottom).offset(27)
             make.leading.equalToSuperview().inset(24)
         }
 
-        // Recent coins horizontal scroll: 16pt gap (38pt from group top, label h=22 → 38-22=16)
         recentScrollView.snp.makeConstraints { make in
             make.top.equalTo(recentCoinLabel.snp.bottom).offset(16)
             make.leading.equalToSuperview().inset(24)
@@ -151,7 +143,6 @@ final class HomeViewController: UIViewController {
             make.height.equalTo(118)
         }
 
-        // "Top Coins" label: 30pt gap (186-(38+118)=30 within content group)
         topCoinLabel.snp.makeConstraints { make in
             make.top.equalTo(recentScrollView.snp.bottom).offset(30)
             make.leading.equalToSuperview().inset(24)
@@ -184,11 +175,10 @@ final class HomeViewController: UIViewController {
         return l
     }
 
-    // horizontal scroll of 163×118 coin cards, last one peeks off the right edge
     private func makeHorizontalCoinScroll(coins: [CoinMock]) -> UIScrollView {
         let sv = UIScrollView()
         sv.showsHorizontalScrollIndicator = false
-        sv.clipsToBounds = false   // let cards spill past the scroll frame
+        sv.clipsToBounds = false
 
         var prevView: UIView? = nil
         for (i, coin) in coins.enumerated() {

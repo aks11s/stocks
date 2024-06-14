@@ -30,7 +30,6 @@ final class MarketTokenCell: UITableViewCell {
         return l
     }()
 
-    // Mini sparkline chart — Figma: 142.5×31, uptrend green / downtrend red
     private lazy var chartView: LineChartView = {
         let c = LineChartView()
         c.isUserInteractionEnabled = false
@@ -102,7 +101,6 @@ final class MarketTokenCell: UITableViewCell {
             make.top.equalTo(nameLabel.snp.bottom).offset(4)
         }
 
-        // Chart spans from after the token name column to just before the price label
         chartView.snp.makeConstraints { make in
             make.leading.equalToSuperview().offset(162)
             make.trailing.equalTo(priceLabel.snp.leading).offset(-8)
@@ -145,7 +143,6 @@ final class MarketTokenCell: UITableViewCell {
 
         let entries = points.enumerated().map { ChartDataEntry(x: Double($0.offset), y: $0.element) }
 
-        // Pin x-axis to exact data range so the last point sits flush at the right edge
         chartView.xAxis.axisMinimum = 0
         chartView.xAxis.axisMaximum = Double(entries.count - 1)
 
@@ -156,7 +153,6 @@ final class MarketTokenCell: UITableViewCell {
         dataSet.setColor(color)
         dataSet.mode = .cubicBezier
 
-        // Gradient fill below the line
         let gradientColors = [color.withAlphaComponent(0.4).cgColor,
                               color.withAlphaComponent(0.0).cgColor] as CFArray
         let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),

@@ -1,8 +1,6 @@
 import Foundation
 
-// Resolves a token's icon URL from its base ticker.
-// Source: CoinCap CDN — icons keyed by lowercased ticker (btc, eth, …).
-// Swap the base here to change providers app-wide.
+// icons come from the CoinCap CDN, keyed by the lowercased ticker (btc, eth, ...)
 enum TokenIcon {
 
     private static let base = "https://assets.coincap.io/assets/icons"

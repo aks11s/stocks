@@ -3,7 +3,6 @@ import SnapKit
 
 final class OrderStepperFieldView: UIView {
 
-    // true = +, false = −
     var onStep: ((Bool) -> Void)?
     var onValueEdited: ((Double) -> Void)?
 

@@ -1,13 +1,12 @@
 import UIKit
 import SnapKit
 
-// Convert / Spot / Margin / Fiat selector — Figma: 366×46, bg #161C22, active pill #1B232A
 final class MarketFilterTabsView: UIView {
 
     var onTabSelected: ((Int) -> Void)?
 
     private let tabs = ["Convert", "Spot", "Margin", "Fiat"]
-    private var selectedIndex = 1   // Spot is active by default
+    private var selectedIndex = 1
 
     private lazy var pill: UIView = {
         let v = UIView()
@@ -44,8 +43,6 @@ final class MarketFilterTabsView: UIView {
     }
 
     private func setupLayout() {
-        // 4 equal-width tabs across 366pt
-        // Active pill: w=89 (366/4 + a bit of rounding), h=38, y=4
         for (idx, btn) in buttons.enumerated() {
             btn.snp.makeConstraints { make in
                 make.top.bottom.equalToSuperview()
@@ -57,7 +54,6 @@ final class MarketFilterTabsView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        // Position pill under selected tab
         let tabWidth = bounds.width / 4
         pill.frame = CGRect(
             x: CGFloat(selectedIndex) * tabWidth + 4,

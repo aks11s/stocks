@@ -1,15 +1,15 @@
 import Foundation
 
 struct MarketToken {
-    let symbol: String        // BTC-USDT
-    let baseAsset: String     // BTC
-    let name: String          // Bitcoin
-    let logoName: String      // asset catalog name
+    let symbol: String
+    let baseAsset: String
+    let name: String
+    let logoName: String
 
     var price: String
     var change: String
     var isUptrend: Bool
-    var chartPoints: [Double] // close prices from klines
+    var chartPoints: [Double]
 }
 
 // MARK: - Static metadata
@@ -27,8 +27,6 @@ extension MarketToken {
 
     var pair: String { "\(baseAsset)/USDT" }
 
-    // Build a token from a REST ticker + sparkline points.
-    // Falls back to logo_all for symbols not in the known metadata list.
     static func from(symbol: String, price: String, changePercent: String, klines: [Double]) -> MarketToken? {
         let base = metadata[symbol]?.base ?? symbol.replacingOccurrences(of: "-USDT", with: "")
         let name = metadata[symbol]?.name ?? base
@@ -47,7 +45,6 @@ extension MarketToken {
         )
     }
 
-    // Applies live miniTicker update in place
     mutating func applyTicker(close: String, open: String) {
         let c = Double(close) ?? 0
         let o = Double(open)  ?? 0

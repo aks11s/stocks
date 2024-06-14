@@ -8,7 +8,7 @@ protocol NetworkServiceProtocol {
 final class NetworkService: NetworkServiceProtocol {
     private let session: Session
 
-    // OKX wraps every response in {"code":"0","data":[...]}
+    // OKX wraps every response in {"code":"0","data":[...]}, so we unwrap it here
     private struct OKXResponse<T: Decodable>: Decodable {
         let data: T
     }

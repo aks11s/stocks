@@ -176,14 +176,12 @@ extension OrdersViewController: UITableViewDelegate {
         return 36
     }
 
-    // tap a pending order to fill it
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         guard Section(rawValue: indexPath.section) == .open else { return }
         viewModel.fill(order: open[indexPath.row])
     }
 
-    // swipe to cancel open orders only
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard Section(rawValue: indexPath.section) == .open else { return nil }
 

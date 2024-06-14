@@ -1,8 +1,8 @@
 import Foundation
 
 struct SearchToken {
-    let symbol: String    // BTC-USDT
-    let pair: String      // BTC/USDT
+    let symbol: String
+    let pair: String
     let logoName: String
     let price: String
     var isAdded: Bool
@@ -27,7 +27,6 @@ final class AddFavoriteViewModel {
     private let rest: OKXRESTServiceProtocol
     private let favorites = FavoritesStorage.shared
 
-    // Full unfiltered list fetched once
     private var allTokens: [SearchToken] = []
 
     init(rest: OKXRESTServiceProtocol = OKXRESTService()) {
@@ -41,7 +40,6 @@ final class AddFavoriteViewModel {
             state = .loading
             do {
                 let tickers = try await rest.fetchAllTickers()
-                // Keep only USDT pairs and sort by quote volume descending
                 allTokens = tickers
                     .filter { $0.symbol.hasSuffix("-USDT") }
                     .sorted {
@@ -74,7 +72,6 @@ final class AddFavoriteViewModel {
     func addFavorite(symbol: String) {
         favorites.add(symbol)
 
-        // Reflect isAdded in both allTokens and current results
         update(symbol: symbol, isAdded: true)
     }
 

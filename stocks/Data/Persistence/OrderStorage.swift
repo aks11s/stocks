@@ -11,7 +11,6 @@ final class OrderStorage {
         static let orders = "orders.all"
     }
 
-    // newest first
     var all: [Order] {
         get {
             guard let data = defaults.data(forKey: Key.orders),

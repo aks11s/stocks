@@ -163,7 +163,6 @@ final class AuthViewController: UIViewController {
             self.inputField.textField.keyboardType = mode == .phone ? .phonePad : .emailAddress
         }
 
-        // apply initial mode (starts as .phone)
         inputField.setPhoneMode(viewModel.inputMode == .phone)
 
         viewModel.onSuccess = { [weak self] in

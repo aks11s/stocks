@@ -39,7 +39,6 @@ final class WalletStorage {
 
     // MARK: - Trades
 
-    // take the cost off the balance and fold the amount into holdings
     func buy(symbol: String, name: String, amount: Double, cost: Double) {
         balance -= cost
 
@@ -53,7 +52,6 @@ final class WalletStorage {
         holdings = current
     }
 
-    // add the proceeds back and shrink (or remove) the holding
     func sell(symbol: String, amount: Double, proceeds: Double) {
         balance += proceeds
 
@@ -63,7 +61,7 @@ final class WalletStorage {
         let entry = current[index]
         let remaining = entry.amount - amount
         if remaining > 0.0000_0001 {
-            // scale fiatValue down by how much we sold
+            // shrink fiatValue by the same share we sold, so the cost basis stays proportional
             let soldFraction = amount / entry.amount
             current[index].amount    = remaining
             current[index].fiatValue = entry.fiatValue * (1 - soldFraction)

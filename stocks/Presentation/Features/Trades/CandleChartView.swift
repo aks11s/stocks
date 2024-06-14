@@ -41,7 +41,6 @@ final class CandleChartView: UIView {
         chartView.data = CandleChartData(dataSet: dataSet)
     }
 
-    // live tick: either replace the last candle or add a new one
     func update(candle: Candle) {
         guard let dataSet else { return }
 

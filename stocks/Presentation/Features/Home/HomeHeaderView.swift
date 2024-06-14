@@ -67,7 +67,6 @@ final class HomeHeaderView: UIView {
             make.center.equalToSuperview()
         }
 
-        // Figma: notif trailing=14pt, icons 44×44, 8pt gap between each
         notifButton.snp.makeConstraints { make in
             make.trailing.equalToSuperview().inset(14)
             make.centerY.equalTo(avatarView)
@@ -88,7 +87,6 @@ final class HomeHeaderView: UIView {
     }
 
     private func setupShadow() {
-        // Figma: 0px 12px 16px rgba(22, 28, 34, 0.5)
         layer.shadowColor = UIColor(red: 22/255, green: 28/255, blue: 34/255, alpha: 1).cgColor
         layer.shadowOffset = CGSize(width: 0, height: 12)
         layer.shadowRadius = 16

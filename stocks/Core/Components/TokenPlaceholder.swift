@@ -1,7 +1,5 @@
 import UIKit
 
-// Draws a circular monogram (first letter of the ticker) as a fallback
-// icon while the remote image loads or when it is missing.
 enum TokenPlaceholder {
 
     static func image(for ticker: String, size: CGFloat = 40) -> UIImage {

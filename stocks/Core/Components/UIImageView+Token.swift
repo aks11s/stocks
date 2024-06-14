@@ -6,8 +6,8 @@ private var taskKey: UInt8 = 0
 
 extension UIImageView {
 
-    // Which ticker this image view currently represents. Used to drop
-    // late responses after the cell was reused for another token.
+    // the ticker this image view shows right now — if a cell gets reused
+    // while an icon is still loading, we compare against this and drop the late image
     private var currentToken: String? {
         get { objc_getAssociatedObject(self, &tokenKey) as? String }
         set { objc_setAssociatedObject(self, &tokenKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
@@ -18,8 +18,6 @@ extension UIImageView {
         set { objc_setAssociatedObject(self, &taskKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
     }
 
-    // Shows a monogram placeholder immediately, then swaps in the remote
-    // icon once loaded. Safe to call from cellForRow.
     func setToken(_ ticker: String, size: CGFloat = 40) {
         cancelTokenLoad()
         currentToken = ticker

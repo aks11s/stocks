@@ -5,7 +5,6 @@ struct AggTradeDTO: Decodable {
     let price: String
     let quantity: String
     let tradeTime: Int64
-    // OKX gives the taker side: "sell" taker -> buyer is maker (red), "buy" taker -> green
     let isBuyerMaker: Bool
 
     private enum CodingKeys: String, CodingKey {
@@ -23,6 +22,7 @@ struct AggTradeDTO: Decodable {
         quantity = try c.decode(String.self, forKey: .sz)
         let tsStr = try c.decode(String.self, forKey: .ts)
         tradeTime    = Int64(tsStr) ?? 0
+        // OKX reports the taker side: a "sell" taker means the buyer was the maker
         let side     = try c.decode(String.self, forKey: .side)
         isBuyerMaker = (side == "sell")
     }

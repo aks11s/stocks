@@ -20,7 +20,6 @@ final class MarketsViewController: UIViewController {
         tv.dataSource = self
         tv.delegate = self
         tv.rowHeight = 81
-        // Pull-to-refresh
         tv.refreshControl = refreshControl
         return tv
     }()
@@ -86,9 +85,9 @@ final class MarketsViewController: UIViewController {
         viewModel.load()
     }
 
+    // a table footer ignores Auto Layout, so its size has to be set by hand
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        // footer view won't pick up Auto Layout, so size it by hand
         if let footer = tableView.tableFooterView {
             let width = tableView.bounds.width
             let buttonHeight: CGFloat = 60
@@ -121,7 +120,6 @@ final class MarketsViewController: UIViewController {
         view.addSubview(loadingIndicator)
         view.addSubview(errorLabel)
 
-        // put the button in the footer so it scrolls along with the list
         let footer = UIView()
         footer.addSubview(addFavoriteButton)
         tableView.tableFooterView = footer
@@ -181,16 +179,14 @@ final class MarketsViewController: UIViewController {
 
     @objc private func addFavoriteTapped() {
         let vc = AddFavoriteViewController()
-        // reload when closed via the X button
         vc.onDismiss = { [weak self] in
-            self?.viewModel.reload()   // closed via the X
+            self?.viewModel.reload()
         }
         if let sheet = vc.sheetPresentationController {
             sheet.detents = [.large()]
             sheet.prefersGrabberVisible = true
             sheet.preferredCornerRadius = 24
         }
-        // also catch the swipe-down dismiss
         vc.presentationController?.delegate = self
         present(vc, animated: true)
     }
@@ -234,7 +230,6 @@ extension MarketsViewController: UITableViewDelegate {
         onSelectPair?(tokens[indexPath.row].symbol)
     }
 
-    // swipe left to drop a coin from favorites
     func tableView(_ tableView: UITableView,
                    trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let delete = UIContextualAction(style: .destructive, title: nil) { [weak self] _, _, done in
@@ -242,7 +237,6 @@ extension MarketsViewController: UITableViewDelegate {
             done(true)
         }
         delete.image = makeTrashIcon()
-        // same as the bg so only the rounded icon shows
         delete.backgroundColor = .appBackground
         return UISwipeActionsConfiguration(actions: [delete])
     }

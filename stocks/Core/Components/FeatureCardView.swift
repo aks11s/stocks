@@ -15,7 +15,6 @@ final class FeatureCardView: UIView {
     private let gradientLayer: CAGradientLayer = {
         let g = CAGradientLayer()
         g.colors = [UIColor.appBackground.cgColor, UIColor.appAccent.cgColor]
-        // Figma: 135deg, dark holds until 29% then transitions to accent
         g.startPoint = CGPoint(x: 0, y: 0)
         g.endPoint   = CGPoint(x: 1, y: 1)
         g.locations  = [0.29, 1.0]
@@ -42,7 +41,6 @@ final class FeatureCardView: UIView {
         return l
     }()
 
-    // Figma: 2.64% letterSpacing → kern = fontSize × 0.0264
     private static let titleKern: CGFloat = 16 * 0.0264
     private static let subtitleKern: CGFloat = 14 * 0.0264
 
@@ -87,33 +85,28 @@ final class FeatureCardView: UIView {
     }
 
     private func setupLayout() {
-        // icon box — left side, vertically centered
         iconBox.snp.makeConstraints { make in
             make.width.height.equalTo(52)
             make.leading.equalToSuperview().inset(12)
             make.centerY.equalToSuperview()
         }
 
-        // icon fills the box — rocket overflows and gets clipped, credit nearly fills it
         iconImageView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
 
-        // Figma: Component 16 is a plain 40×40 SVG icon, no background circle
         arrowImageView.snp.makeConstraints { make in
             make.width.height.equalTo(40)
             make.trailing.equalToSuperview().inset(18)
             make.centerY.equalToSuperview()
         }
 
-        // title at x=80 → 80pt from leading
         titleLabel.snp.makeConstraints { make in
             make.leading.equalToSuperview().inset(80)
             make.top.equalToSuperview().inset(17)
             make.trailing.equalTo(arrowImageView.snp.leading).offset(-8)
         }
 
-        // subtitle
         subtitleLabel.snp.makeConstraints { make in
             make.leading.equalToSuperview().inset(80)
             make.top.equalToSuperview().offset(44)

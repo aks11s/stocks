@@ -1,5 +1,3 @@
-//
-
 import UIKit
 
 class ViewController: UIViewController {
@@ -9,6 +7,4 @@ class ViewController: UIViewController {
         view.backgroundColor = .white
     }
 
-
 }
-

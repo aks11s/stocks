@@ -5,7 +5,6 @@ final class ProfileViewController: UIViewController {
 
     // MARK: - Subviews
 
-    // Gradient fades from transparent (top) to accent (bottom) — Figma: 180deg, y=0..175
     private let gradientLayer: CAGradientLayer = {
         let g = CAGradientLayer()
         g.colors = [UIColor.appBackground.withAlphaComponent(0).cgColor,
@@ -80,7 +79,6 @@ final class ProfileViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // Reload every time we come back from edit screen
         loadProfile()
     }
 
@@ -112,7 +110,6 @@ final class ProfileViewController: UIViewController {
             make.centerY.equalTo(backButton)
         }
 
-        // Avatar: Figma content group y=111, from safeArea: 111-44=67pt
         avatarView.snp.makeConstraints { make in
             make.width.height.equalTo(110)
             make.centerX.equalToSuperview()
@@ -123,14 +120,11 @@ final class ProfileViewController: UIViewController {
             make.center.equalToSuperview()
         }
 
-        // Username: Figma avatar bottom + 14pt gap
         usernameLabel.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
             make.top.equalTo(avatarView.snp.bottom).offset(14)
         }
 
-        // First separator at Figma content y=176 → username bottom + 30pt
-        // Each row is 62pt tall
         usernameRow.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview().inset(24)
             make.top.equalTo(usernameLabel.snp.bottom).offset(30)
@@ -180,11 +174,9 @@ final class ProfileViewController: UIViewController {
         emailRow.configure(label: "Email",            value: storage.email)
         phoneRow.configure(label: "Mobile Number",    value: storage.phone.map { formatPhone($0) })
 
-        // Show masked dots if password is saved, nil otherwise
         let maskedPassword = storage.passwordHash != nil ? "••••••••" : nil
         passwordRow.configure(label: "Password", value: maskedPassword)
 
-        // Any row tap or "Add" button opens the edit screen
         [usernameRow, emailRow, phoneRow, passwordRow].forEach { row in
             row.onAddTap = { [weak self] in self?.openEdit() }
             row.onRowTap = { [weak self] in self?.openEdit() }

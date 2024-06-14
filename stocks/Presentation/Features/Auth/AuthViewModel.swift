@@ -4,7 +4,6 @@ enum AuthInputMode {
     case phone, email
 }
 
-// fake auth, no backend, we just flip isAuthenticated in UserDefaults
 final class AuthViewModel {
 
     private(set) var inputMode: AuthInputMode = .phone
@@ -32,10 +31,10 @@ final class AuthViewModel {
         onInputModeChanged?(inputMode)
     }
 
+    // there is no backend — signing in just flips a flag and saves what the user typed
     func signIn(input: String, password: String) {
         guard validate(input: input, password: password) else { return }
         UserDefaults.standard.set(true, forKey: "isAuthenticated")
-        // save what they logged in with so Profile can show it right away
         if inputMode == .phone {
             ProfileStorage.shared.saveAuthCredentials(phone: input, password: password)
         } else {
@@ -49,7 +48,6 @@ final class AuthViewModel {
     private func validate(input: String, password: String) -> Bool {
         switch inputMode {
         case .phone:
-            // input is masked, so just count digits past the country code
             var digits = input.filter { $0.isNumber }
             if digits.hasPrefix("7") { digits = String(digits.dropFirst()) }
             if digits.count < 10 {

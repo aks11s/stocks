@@ -66,25 +66,21 @@ final class CoinCardView: UIView {
     }
 
     private func setupLayout() {
-        // price — top-left
         priceLabel.snp.makeConstraints { make in
             make.leading.equalToSuperview().inset(12)
             make.top.equalToSuperview().inset(10)
         }
 
-        // pair — below price
         pairLabel.snp.makeConstraints { make in
             make.leading.equalToSuperview().inset(12)
             make.top.equalToSuperview().offset(42)
         }
 
-        // change — right of pair
         changeLabel.snp.makeConstraints { make in
             make.leading.equalToSuperview().offset(88)
             make.top.equalToSuperview().offset(43)
         }
 
-        // logo — top-right corner
         logoView.snp.makeConstraints { make in
             make.width.height.equalTo(24)
             make.trailing.equalToSuperview().inset(8)
@@ -95,7 +91,6 @@ final class CoinCardView: UIView {
             make.center.equalToSuperview()
         }
 
-        // sparkline — bottom
         sparklineView.snp.makeConstraints { make in
             make.leading.equalToSuperview().inset(12)
             make.bottom.equalToSuperview().inset(12)
@@ -145,7 +140,6 @@ private final class SparklineView: UIView {
             ? UIColor(red: 94/255, green: 213/255, blue: 168/255, alpha: 0.15)
             : UIColor(red: 221/255, green: 75/255, blue: 75/255, alpha: 0.15)
 
-        // hardcoded points, just to fake the shape
         let upPoints: [CGFloat]   = [1.0, 0.85, 0.75, 0.80, 0.60, 0.50, 0.55, 0.40, 0.30, 0.20, 0.10]
         let downPoints: [CGFloat] = [0.10, 0.20, 0.30, 0.25, 0.45, 0.55, 0.50, 0.65, 0.75, 0.85, 1.0]
         let pts = isUp ? upPoints : downPoints
@@ -161,7 +155,6 @@ private final class SparklineView: UIView {
             i == 0 ? path.move(to: CGPoint(x: x, y: y)) : path.addLine(to: CGPoint(x: x, y: y))
         }
 
-        // Fill area under line
         let fill = path.copy() as! UIBezierPath
         fill.addLine(to: CGPoint(x: w, y: h))
         fill.addLine(to: CGPoint(x: 0, y: h))
@@ -169,14 +162,12 @@ private final class SparklineView: UIView {
         fillColor.setFill()
         fill.fill()
 
-        // Draw line
         color.setStroke()
         path.lineWidth = 1.5
         path.lineJoinStyle = .round
         path.lineCapStyle = .round
         path.stroke()
 
-        // Start dot
         let dotPt = CGPoint(x: 0, y: (pts.first ?? 0) * (h - 4) + 2)
         let dotRect = CGRect(x: dotPt.x - 3, y: dotPt.y - 3, width: 6, height: 6)
         ctx.setFillColor(color.cgColor)

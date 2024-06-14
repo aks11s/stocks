@@ -8,7 +8,6 @@ final class OrderEntryViewController: UIViewController {
     private let base: String
     private let quote: String
 
-    // which field the user is typing in, so live state updates don't fight the cursor
     private enum EditingField { case stop, price, quantity }
     private var editingField: EditingField?
 
@@ -67,7 +66,6 @@ final class OrderEntryViewController: UIViewController {
     private lazy var priceField = OrderStepperFieldView(title: "Price (\(quote))")
     private lazy var quantityField = OrderStepperFieldView(title: "Amount (\(base))")
 
-    // stack so hidden fields (market has no price, stop-limit adds a trigger) collapse the gap
     private lazy var fieldsStack: UIStackView = {
         let s = UIStackView(arrangedSubviews: [stopField, priceField, quantityField])
         s.axis = .vertical

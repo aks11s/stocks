@@ -23,7 +23,6 @@ final class OnboardingViewController: UIViewController {
         return iv
     }()
 
-    // Fades the illustration into the content area below (Rectangle 21 in Figma)
     private lazy var gradientView = UIView()
     private let gradientLayer: CAGradientLayer = {
         let layer        = CAGradientLayer()
@@ -35,7 +34,6 @@ final class OnboardingViewController: UIViewController {
         return layer
     }()
 
-    // Additional fade that starts higher — blends bottom of illustration into background (Rectangle 50)
     private lazy var bottomFadeView = UIView()
     private let bottomFadeLayer: CAGradientLayer = {
         let layer        = CAGradientLayer()
@@ -89,9 +87,9 @@ final class OnboardingViewController: UIViewController {
         apply(page: pages[0], animated: false)
     }
 
+    // gradient frames are set here, not in viewDidLoad, where bounds aren't final yet
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        // Frames must be updated here — bounds are not ready in viewDidLoad
         gradientLayer.frame    = gradientView.bounds
         bottomFadeLayer.frame  = bottomFadeView.bounds
     }
@@ -107,20 +105,17 @@ final class OnboardingViewController: UIViewController {
     }
 
     private func setupLayout() {
-        // Background bleeds under the safe area on purpose — full-screen visual
         backgroundImageView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
 
         illustrationImageView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(41)
-            // y=93 is absolute from frame top in Figma (not relative to safe area)
             $0.top.equalToSuperview().offset(93)
             $0.width.equalToSuperview().multipliedBy(332.0 / 414.0)
             $0.height.equalToSuperview().multipliedBy(369.0 / 896.0)
         }
 
-        // Rectangle 50: extra fade starting at y=336, 144pt tall — blends illustration bottom
         bottomFadeView.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview()
             $0.top.equalToSuperview().offset(336)
@@ -132,7 +127,6 @@ final class OnboardingViewController: UIViewController {
             $0.height.equalToSuperview().multipliedBy(403.0 / 896.0)
         }
 
-        // Build layout bottom-up so it adapts to any screen height
         nextButton.snp.makeConstraints {
             $0.centerX.equalToSuperview()
             $0.width.equalTo(180)
@@ -211,7 +205,6 @@ private func makeAttr(
     let ps       = NSMutableParagraphStyle()
     ps.alignment = alignment
     if let lh = lineHeight {
-        // Setting both min and max locks iOS to exact Figma line height
         ps.minimumLineHeight = lh
         ps.maximumLineHeight = lh
     }
@@ -222,7 +215,6 @@ private func makeAttr(
         .paragraphStyle:  ps
     ]
     if let lh = lineHeight {
-        // Compensates for vertical shift iOS applies when line height is fixed
         attrs[.baselineOffset] = (lh - font.lineHeight) / 2
     }
     return NSAttributedString(string: text, attributes: attrs)

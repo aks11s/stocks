@@ -4,8 +4,8 @@ import Foundation
 final class PairPickerViewModel {
 
     struct Item {
-        let symbol: String    // BTC-USDT
-        let pair: String      // BTC/USDT
+        let symbol: String
+        let pair: String
         let logoName: String
         let price: String
     }

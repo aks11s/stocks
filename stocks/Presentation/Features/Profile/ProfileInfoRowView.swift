@@ -3,9 +3,7 @@ import SnapKit
 
 final class ProfileInfoRowView: UIView {
 
-    // Fired when the user taps "Add" on an empty field
     var onAddTap: (() -> Void)?
-    // Fired when the user taps anywhere on a filled row
     var onRowTap: (() -> Void)?
 
     // MARK: - Subviews
@@ -24,7 +22,6 @@ final class ProfileInfoRowView: UIView {
         return l
     }()
 
-    // Shown instead of valueText when the field has no data yet
     private lazy var addButton: UIButton = {
         let b = UIButton(type: .system)
         b.setTitle("Add", for: .normal)

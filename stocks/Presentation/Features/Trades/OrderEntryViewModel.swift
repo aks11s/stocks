@@ -7,9 +7,7 @@ final class OrderEntryViewModel {
         let side: OrderSide
         let orderType: OrderType
         let price: Double
-        // market orders execute at the live price, so the field is hidden
         let showsPrice: Bool
-        // trigger price, only meaningful for stop-limit orders
         let stopPrice: Double
         let showsStop: Bool
         let quantity: Double
@@ -41,13 +39,10 @@ final class OrderEntryViewModel {
     private let orderStorage: OrderStorage
 
     private var orderType: OrderType = .market
-    // user-entered limit price, used for limit/stop-limit only
     private var price: Double
-    // trigger price that arms the limit order, stop-limit only
     private var stopPrice: Double
     private var quantity: Double = 0
 
-    // live price from the trade screen, used as-is for market orders
     private let marketPrice: Double
     private let priceStep: Double
 
@@ -70,7 +65,6 @@ final class OrderEntryViewModel {
         self.base  = parts.first ?? symbol
         self.quote = parts.count > 1 ? parts[1] : ""
 
-        // nudge price by ~0.1% per tap, with a floor for cheap coins
         self.priceStep = max(marketPrice * 0.001, 0.01)
     }
 
@@ -116,7 +110,6 @@ final class OrderEntryViewModel {
         emit()
     }
 
-    // percent of what you can spend (buy) or what you hold (sell)
     func selectPercent(_ percent: Double) {
         let clamped = min(max(percent, 0), 1)
         switch side {
@@ -133,7 +126,7 @@ final class OrderEntryViewModel {
             state = .error(insufficientMessage)
             return
         }
-        // market fills right away; limit/stop-limit sit as pending until triggered
+        // market orders fill immediately, limit and stop-limit stay pending until the user fills them
         if orderType == .market {
             switch side {
             case .buy:  storage.buy(symbol: symbol, name: base, amount: quantity, cost: total)
@@ -160,14 +153,12 @@ final class OrderEntryViewModel {
 
     // MARK: - Private
 
-    // limit orders fill at the entered price, market orders at the live price
     private var effectivePrice: Double {
         orderType == .market ? marketPrice : price
     }
 
     private var total: Double { effectivePrice * quantity }
 
-    // one tap ≈ one quote unit ($1) worth of the coin
     private var quantityStep: Double {
         effectivePrice > 0 ? 1 / effectivePrice : 0.0001
     }
@@ -194,7 +185,6 @@ final class OrderEntryViewModel {
         case .buy:  valid = quantity > 0 && effectivePrice > 0 && total <= storage.balance
         case .sell: valid = quantity > 0 && effectivePrice > 0 && quantity <= heldAmount
         }
-        // stop-limit also needs a trigger price to arm the order
         if orderType == .stopLimit { valid = valid && stopPrice > 0 }
 
         return Snapshot(

@@ -126,7 +126,6 @@ final class TradeViewController: UIViewController {
 
     private var isFavorite: Bool = false
 
-    // latest market price, handed to the order screen on Buy/Sell
     private var lastPrice: Double = 0
 
     // MARK: - Init
@@ -155,26 +154,20 @@ final class TradeViewController: UIViewController {
     // MARK: - Subview tree
 
     private func addSubviews() {
-        // Header
         [backButton, searchButton, starButton].forEach { headerView.addSubview($0) }
         view.addSubview(headerView)
 
-        // Price section
         view.addSubview(priceSectionStack)
 
-        // Chart
         view.addSubview(chartView)
         view.addSubview(chartLoadingIndicator)
 
-        // Timeframe tabs
         view.addSubview(timeframeTabsView)
 
-        // Buy/Sell
         buySellRow.addArrangedSubview(buyButton)
         buySellRow.addArrangedSubview(sellButton)
         view.addSubview(buySellRow)
 
-        // Bottom section
         bottomSection.addSubview(orderBookView)
         view.addSubview(bottomSection)
     }
@@ -405,4 +398,3 @@ final class TradeViewController: UIViewController {
         return formatter.string(from: NSNumber(value: value)) ?? String(format: "%.2f", value)
     }
 }
-

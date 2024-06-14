@@ -67,8 +67,8 @@ final class MarketViewModel {
 
     // MARK: - Private
 
-    // load ticker + klines for every symbol in parallel
-    // if one symbol throws we just skip it, otherwise a single dead pair kills the list
+    // loads every symbol in parallel, skipping the ones that fail
+    // so a single dead pair doesn't take the whole list down
     private func fetchTokens(symbols: [String]) async throws -> [MarketToken] {
         await withTaskGroup(of: MarketToken?.self) { group in
             for symbol in symbols {
@@ -93,7 +93,6 @@ final class MarketViewModel {
             }
             var result: [MarketToken?] = []
             for await token in group { result.append(token) }
-            // Preserve favorites order
             return symbols.compactMap { sym in result.first(where: { $0?.symbol == sym }) ?? nil }
         }
     }

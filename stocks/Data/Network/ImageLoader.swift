@@ -1,7 +1,6 @@
 import UIKit
 
-// Lightweight async image loader with an in-memory cache.
-// No disk cache — good enough for token icons in a small app.
+// in-memory cache only, no disk cache — enough for token icons
 final class ImageLoader {
 
     static let shared = ImageLoader()
