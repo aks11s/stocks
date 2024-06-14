@@ -128,8 +128,13 @@ final class MarketTokenCell: UITableViewCell {
 
     // MARK: - Configure
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        logoView.cancelTokenLoad()
+    }
+
     func configure(with token: MarketToken) {
-        logoView.image = UIImage(named: token.logoName)
+        logoView.setToken(token.baseAsset)
         nameLabel.text = token.name
         pairLabel.text = token.pair
         priceLabel.text = token.price

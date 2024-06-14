@@ -262,8 +262,13 @@ private final class PairPickerCell: UITableViewCell {
 
     required init?(coder: NSCoder) { fatalError() }
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        logoView.cancelTokenLoad()
+    }
+
     func configure(with item: PairPickerViewModel.Item) {
-        logoView.image = UIImage(named: item.logoName)
+        logoView.setToken(item.symbol.components(separatedBy: "-").first ?? item.symbol)
         pairLabel.text = item.pair
         priceLabel.text = item.price
     }

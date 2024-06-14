@@ -95,8 +95,13 @@ final class AddFavoriteTokenCell: UITableViewCell {
 
     // MARK: - Configure
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        logoView.cancelTokenLoad()
+    }
+
     func configure(with token: SearchToken) {
-        logoView.image = UIImage(named: token.logoName)
+        logoView.setToken(token.symbol.components(separatedBy: "-").first ?? token.symbol)
         pairLabel.text = token.pair
         priceLabel.text = token.price
         setAdded(token.isAdded)
