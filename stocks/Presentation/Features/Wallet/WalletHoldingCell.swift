@@ -89,11 +89,16 @@ final class WalletHoldingCell: UITableViewCell {
 
     // MARK: - Configure
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        iconImageView.cancelTokenLoad()
+    }
+
     func configure(with entry: HoldingEntry) {
         nameLabel.text = entry.name
         tickerLabel.text = entry.symbol
         amountLabel.text = String(format: "%.2f", entry.amount)
         fiatLabel.text = String(format: "$%.2f", entry.fiatValue)
-        iconImageView.image = UIImage(named: entry.symbol.lowercased())
+        iconImageView.setToken(entry.symbol.components(separatedBy: "-").first ?? entry.symbol)
     }
 }
